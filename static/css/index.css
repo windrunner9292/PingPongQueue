@@ -1,0 +1,15 @@
+h1 {
+    color: blue;
+    font: ""
+
+  }
+  
+  p {
+    color: red;
+  }
+
+  body {
+    background-image: url("../img/bg_index.jpg");
+    background-size: cover;
+    background-position: center;
+ }

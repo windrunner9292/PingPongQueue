@@ -1,0 +1,30 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Info Display Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="{{ url_for('static', filename = 'css/render_json.css')}}" rel="stylesheet" >
+    <link rel="shortcut icon" href="http://www.iconj.com/ico/n/g/ngz4vimbrv.ico" type="image/x-icon" />
+    
+
+</head>
+
+<body>
+        <h1> Something went wrong... </h1>
+        <p id="error_category"></p>
+        <p id="error_message"></p>
+        <script type="text/javascript" src="{{ url_for('static', filename = 'js/display_error.js')}}"></script>
+        <script type="text/javascript">
+            display_error({{ error_json | tojson | safe }})
+        </script>
+
+    <p> <b>Click below to go to homepage</b> </p>
+
+    <form action="{{ url_for('index') }}" method="post">
+    <input type="submit" value="submit">
+    </form> 
+
+</body>
+</html>

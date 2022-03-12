@@ -1,0 +1,24 @@
+<html>
+
+<head>
+</head>
+<body>
+<p>
+  This is a signup page.
+</p>
+<form action="{{ url_for('signUp') }}" method="post">
+  Enter Username : &nbsp;<input type="text" name="username" /><br>
+  Enter Email : &nbsp;<input type="text" name="email" /><br>
+  <input type="submit" value="Submit">
+</form>
+<p> {{ errorMessage }} </p>
+
+<form action="{{ url_for('index') }}" method="post">
+  <input type="submit" value="Return to main page">
+</form>
+
+
+
+
+</body>
+</html>

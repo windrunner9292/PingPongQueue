@@ -1,20 +1,20 @@
-<html>
+{% extends "base.html" %}
+{% block title %}Login Page{% endblock %}
 
-<head>
-</head>
-<body>
-<p>
-  This is a login page.
-</p>
-<form action="{{ url_for('viewRatingPage') }}" method="post">
-  Enter Username : &nbsp;<input type="text" name="username" /><br>
-  <input type="submit" value="Submit">
-</form>
-
-<form action="{{ url_for('index') }}" method="post">
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+        <p>{{msg}}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <form action="login" method="post">
+    Enter Username : &nbsp;<input type="text" name="username" /><br>
+    Enter Email : &nbsp;<input type="text" name="email" /><br>
+  <input type="submit" value="Log In">
+  </form>
+  <form action="signup" method="get">
   <input type="submit" value="Sign Up">
-</form>
-
-
-</body>
-</html>
+  </form>
+{% endblock %}

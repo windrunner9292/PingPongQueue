@@ -1,24 +1,17 @@
-<html>
+{% extends "base.html" %}
+{% block title %}Signup Page{% endblock %}
 
-<head>
-</head>
-<body>
-<p>
-  This is a signup page.
-</p>
-<form action="{{ url_for('signUp') }}" method="post">
-  Enter Username : &nbsp;<input type="text" name="username" /><br>
-  Enter Email : &nbsp;<input type="text" name="email" /><br>
-  <input type="submit" value="Submit">
-</form>
-<p> {{ errorMessage }} </p>
-
-<form action="{{ url_for('index') }}" method="post">
-  <input type="submit" value="Return to main page">
-</form>
-
-
-
-
-</body>
-</html>
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+        <p>{{msg}}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <form action="signup" method="post">
+    Enter Username : &nbsp;<input type="text" name="username" /><br>
+    Enter Email : &nbsp;<input type="text" name="email" /><br>
+  <input type="submit" value="Sign up">
+  </form>
+{% endblock %}

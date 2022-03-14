@@ -9,5 +9,29 @@
       {% endfor %}
     {% endif %}
   {% endwith %}
-  <p>main page</p>
+
+  <p>Add the Match</p>
+  <form action="main" method="post">
+    <label for="firstPlayer">Player 1: </label>
+    <select name="firstPlayer">
+      {% for user in currentUsers %}
+        <option value= {{ user }}>{{ user }}</option>
+      {% endfor %}
+    </select>
+    <label for="secondPlayer">Player 2: </label>
+    <select name="secondPlayer">
+      {% for user in currentUsers %}
+        <option value= {{ user }} >{{ user }}</option>
+      {% endfor %}
+    </select>
+    <input type="submit" value="Submit">
+  </form>
+
+    <p>Current Queue</p>
+    {% for queue in currentQueue %}
+        <p>{{ queue }}</p>
+    {% endfor %}
+
+    
+
 {% endblock %}

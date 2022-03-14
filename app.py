@@ -25,6 +25,7 @@ app.config['MAIL_USERNAME'] = confidential_info[0]
 app.config['MAIL_PASSWORD'] = confidential_info[1]
 app.config['SECRET_KEY'] = confidential_info[2]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+TokenTimer = 300
 
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -37,6 +38,14 @@ class Users(db.Model):
     def __repr__(self):
         return f"User('{self.username}, {self.email}')"
 
+class Queue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    firstUser = db.Column(db.String(20), unique=False, nullable=False)
+    secondUser = db.Column(db.String(50), unique=False, nullable=False)
+
+    def __repr__(self):
+        return f"User('{self.username}, {self.email}')"
+
 def isExistingUser(username, email):
     # used for the user entry check in the db
     existingUser = Users.query.filter_by(username=username).first()
@@ -45,12 +54,32 @@ def isExistingUser(username, email):
         return True
     return False
 
+def getAllUsers():
+    # returns the current users in the table
+    return [user.username for user in Users.query.all()]
+
+def getCurrentQueue():
+    # returns the current users in the table
+    return [(queue.firstUser, queue.secondUser) for queue in Queue.query.all()]
+
 def addUser(username, email):
     user = Users(username=username, email=email)
     db.session.add(user)
     db.session.commit()
 
-def sendEmail(email):
+def addQueue(firstUser, secondUser):
+    queue = Queue(firstUser=firstUser, secondUser=secondUser)
+    db.session.add(queue)
+    db.session.commit()
+
+def sendConfirmationEmail(username, email):
+    token = s.dumps(email, salt='email-confirmed')
+    msg = Message('Confirm Email', sender=app.config['MAIL_USERNAME'], recipients=[email])
+    link = url_for('confirmEmail', token=token, _external=True)
+    msg.body = 'Link for {} is {}'.format(username, link) + "\n If you clicked on 'start over' button, please disregard this email. "
+    mail.send(msg)
+
+def sendNotificationEmail(email):
     token = s.dumps(email, salt='email-confirmed')
     msg = Message('Confirm Email', sender=app.config['MAIL_USERNAME'], recipients=[email])
     link = url_for('confirmEmail', token=token, _external=True)
@@ -99,17 +128,17 @@ def signup():
         if (not isExistingUser(username, email)):                           # if there is no existing user, send a confirmation email.
             session["user"] = username                                      # when the user clicks on the link, the user will be added.
             session["email"] = email
-            sendEmail(email)
+            session["temporary"] = True
+            sendConfirmationEmail(username, email)
             flash(f"Confirmation email has been sent to {email}!", "info")
             return redirect(url_for("home"))
         else:
             flash(f"This username or email already exists.", "info")
             return render_template("signup.html")
 
-    elif "user" in session:                                                 # if there's an active session, redirect them to the main.
+    elif "user" in session and "temporary" not in session:                                                 # if there's an active session, redirect them to the main.
             flash("Already logged in!")
             return render_template("main.html")
-
     else:
         return render_template("signup.html")                               # when landing on this page using URL, not POST request
 
@@ -118,23 +147,34 @@ def confirmEmail(token):
     # this function is called when the user clicks on the confirmation email.
 
     try:
-        email = s.loads(token, salt='email-confirmed', max_age=120)
-        addUser(session["user"], session["email"])
-        flash("Account has been successfully created for {}!".format(session["user"]), "info")
-        session.pop("user", None)
-        session.pop("email", None)
+        if "user" in session:
+            email = s.loads(token, salt='email-confirmed', max_age=TokenTimer)
+            addUser(session["user"], session["email"])
+            flash("Account has been successfully created for {}!".format(session["user"]), "info")
+            session.pop("user", None)
+            session.pop("email", None)
+            session.pop("temporary", None)
+        else:
+            flash("The link is unavailble.", "info")
     except SignatureExpired:                # if the token timer is expired.
-        return 'The token is expired'
+        flash("The token is expired.", "info")
     return redirect(url_for("home"))
 
 @app.route("/main", methods=["POST","GET"])
 def main():
     # main page where the queue display will happen.
-
     if "user" in session:
         user = session["user"]
-
-        return render_template("main.html")
+        currentUsers = getAllUsers()
+        if request.method == "POST":
+            firstPlayer = request.form["firstPlayer"]
+            secondPlayer = request.form["secondPlayer"]
+            addQueue(firstPlayer, secondPlayer)
+        currentQueue = getCurrentQueue()
+        return render_template("main.html", 
+                                currentUsers=currentUsers,
+                                currentQueue=currentQueue)
+        
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))    
@@ -145,12 +185,13 @@ def logout():
 
     if "user" in session:
         user = session["user"]
-        flash(f"You have been logged out, {user}!", "info")
+        flash(f"You have been logged out!", "info")
     session.pop("user", None)
     session.pop("email", None)
+    session.pop("temporary", None)
     return redirect(url_for("home"))
 
 if __name__ == "__main__":
-    db.drop_all()
+    #db.drop_all()
     db.create_all()
     app.run(debug=True, port = 9999)

@@ -10,22 +10,28 @@
     {% endif %}
   {% endwith %}
 
-  {% if "user" not in session %}
-  <form action="login" method="post">
-    Enter Username : &nbsp;<input type="text" name="username" /><br>
-    Enter Email : &nbsp;<input type="email" name="email" /><br>
-    <input type="submit" value="Log In">
-  </form>
-  <form action="signup" method="get">
-    <input type="submit" value="Sign Up">
-  </form>
-  {% else %}
-  <p>You are currently logged in as {{ session["user"] }}</p>
-  <form action="logout" method="get">
-    <input type="submit" value="Log Out">
-  </form>
+  {% if "temporary" in session %}
+    <p>Link expires in 5 minutes. Click the button below to start over.</p>
+    <form action="logout" method="post">
+      <input type="submit" value="Start over">
+    </form>
+  {% elif "user" not in session%}
+    <form action="login" method="post">
+      Enter Username : &nbsp;<input type="text" name="username" /><br>
+      Enter Email : &nbsp;<input type="email" name="email" /><br>
+      <input type="submit" value="Log In">
+    </form>
+    <form action="signup" method="get">
+      <input type="submit" value="Sign Up">
+    </form>
+  {% elif "user" in session %}
+    <p>You are currently logged in as {{ session["user"] }}</p>
+    <form action="logout" method="get">
+      <input type="submit" value="Log Out"> 
+    </form>
   {% endif %}
 
+  
   
 
 {% endblock %}

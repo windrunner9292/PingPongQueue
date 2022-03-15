@@ -1,0 +1,6 @@
+python -m pip install flask
+python -m pip install flask-mail
+python -m pip install SQLAlchemy
+python -m pip install itsdangerous
+python -m pip install psycopg2
+

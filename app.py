@@ -5,6 +5,7 @@ from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
+
 # this file is to be ignored
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
@@ -18,7 +19,7 @@ app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
 
 # configs for the email
 app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
-app.config['MAIL_PORT'] = 587
+app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = confidential_info[0]
@@ -72,6 +73,10 @@ def addQueue(firstUser, secondUser):
     db.session.add(queue)
     db.session.commit()
 
+def deleteQueue(firstUser, secondUser):
+    Queue.query.filter_by(firstUser=firstUser, secondUser=secondUser).delete()
+    db.session.commit()
+
 def sendConfirmationEmail(username, email):
     token = s.dumps(email, salt='email-confirmed')
     msg = Message('Confirm Email', sender=app.config['MAIL_USERNAME'], recipients=[email])
@@ -79,15 +84,13 @@ def sendConfirmationEmail(username, email):
     msg.body = 'Link for {} is {}'.format(username, link) + "\n If you clicked on 'start over' button, please disregard this email. "
     mail.send(msg)
 
-def sendNotificationEmail(email):
-    token = s.dumps(email, salt='email-confirmed')
-    msg = Message('Confirm Email', sender=app.config['MAIL_USERNAME'], recipients=[email])
-    link = url_for('confirmEmail', token=token, _external=True)
-    msg.body = 'Your link is {}'.format(link)
+def sendNotificationEmail(iteration):
+    currentQueue = getCurrentQueue()
+    recipients = [Users.query.filter_by(username=currentQueue[iteration][0]).first().email,
+                  Users.query.filter_by(username=currentQueue[iteration][1]).first().email]
+    msg = Message('You are up next!', sender=app.config['MAIL_USERNAME'], recipients=[recipients])
+    msg.body = 'This is from automated email. You guys are up next.'
     mail.send(msg)
-
-def deleteEntryFromQueue():
-    return
 
 @app.route("/")
 def home():
@@ -182,13 +185,40 @@ def main():
         user = session["user"]
         currentUsers = getAllUsers()
         if request.method == "POST":
-            firstPlayer = request.form["firstPlayer"]
-            secondPlayer = request.form["secondPlayer"]
-            addQueue(firstPlayer, secondPlayer)
-            currentQueue = getCurrentQueue()
-            return redirect(url_for("main", 
-                                    currentUsers=currentUsers,
-                                    currentQueue=currentQueue))
+            if request.form['action'] == 'Submit':
+                firstPlayer = request.form["firstPlayer"]
+                secondPlayer = request.form["secondPlayer"]
+                addQueue(firstPlayer, secondPlayer)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue))
+            if request.form['action'] == 'Game over, Notify next players in Queue':
+                firstCurrentPlayer = request.form["firstCurrentPlayer"]
+                secondCurrentPlayer = request.form["secondCurrentPlayer"]
+                sendNotificationEmail(0)
+                deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue))
+            if request.form['action'] == 'Game over, Just delete us from the Queue':
+                firstCurrentPlayer = request.form["firstCurrentPlayer"]
+                secondCurrentPlayer = request.form["secondCurrentPlayer"]
+                deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue))
+            if request.form['action'] == 'Delete':
+                firstPlayerInQueue = request.form["firstPlayerInQueue"]
+                secondPlayerInQueue = request.form["secondPlayerInQueue"]
+                deleteQueue(firstPlayerInQueue,secondPlayerInQueue)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue))
+                
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:

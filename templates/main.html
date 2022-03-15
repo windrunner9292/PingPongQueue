@@ -21,15 +21,17 @@
   {% elif currentQueue|length > 0 %}
     <p class="sub-headers">Currently playing:</p>
     <div class="players-container">
-      <form action="deleteEntryFromQueue" method="post"></form>
+	  <p><strong>{{ currentQueue[0][0] }}</strong> vs. <strong>{{ currentQueue[0][1] }}</strong></p>
+      <form style="inline" action="{{ url_for('main') }}" method="post">
         <div class="players-list">
-        <label><strong>First Player:&emsp;</strong></label>
-        <input display="inline" class="player" type="text" value={{ currentQueue[0][0] }} name="username" readonly>
-        <label><strong>&emsp;&emsp;Second Player:&emsp;</strong></label>
-        <input display="inline" class="player" type="text" value={{ currentQueue[0][1] }} name="username" readonly>
+        <input class="player" type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer" readonly>
+        <input class="player" type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer" readonly>
         </div>
-        <button type="submit">Game over, notify next players in queue</button>
+        <input type="submit" name="action" value="Game over, Notify next players in Queue"/>
+		<input type="submit" name="action" value="Game over, Just delete us from the Queue"/>
       </form>
+	  <form style="inline" action="{{ url_for('main') }}" method="post">
+	  
     </div>
     <br/>
 
@@ -40,7 +42,13 @@
     <p class="sub-headers">Current Queue:</p>
     <div class="players-container">
     {% for i in range(1,currentQueue|length) %}
-        <p>{{ currentQueue[i][0] }} vs. {{ currentQueue[i][1] }}</p>
+		<form action="{{ url_for('main') }}" method="post">
+			<input class="player" type="hidden" value={{ currentQueue[i][0] }} name="firstPlayerInQueue" readonly>
+			<input class="player" type="hidden" value={{ currentQueue[i][1] }} name="secondPlayerInQueue" readonly>
+			<input class="player" type="hidden" value={{ i }} name="currentIteration" readonly>
+			<label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }}</strong>&emsp;</label>
+			<input type="submit" name="action" value="Delete"/>
+		</form>
     {% endfor %}
   </div>
   {% endif %}
@@ -55,13 +63,13 @@
           <option value= {{ user }}>{{ user }}</option>
         {% endfor %}
       </select>
-      <label for="secondPlayer">Player 2: </label>
+      <label for="secondPlayer">&emsp;Player 2: </label>
       <select name="secondPlayer">
         {% for user in currentUsers %}
           <option value= {{ user }} >{{ user }}</option>
         {% endfor %}
       </select>
-      <input type="submit" value="Submit">
+      <input type="submit" name="action" value="Submit"/>
     </form>
   </div>
 

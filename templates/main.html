@@ -22,10 +22,11 @@
     <p class="sub-headers">Currently playing:</p>
     <div class="players-container">
       <form action="deleteEntryFromQueue" method="post"></form>
-        <p>{{ currentQueue[0][0] }} vs. {{ currentQueue[0][1] }}</p>
         <div class="players-list">
-        <input display="inline" type="text" class="form-control" placeholder="Username" name="username">
-        <input display="inline" type="text" class="form-control" placeholder="Username" name="username">
+        <label><strong>First Player:&emsp;</strong></label>
+        <input display="inline" class="player" type="text" value={{ currentQueue[0][0] }} name="username" readonly>
+        <label><strong>&emsp;&emsp;Second Player:&emsp;</strong></label>
+        <input display="inline" class="player" type="text" value={{ currentQueue[0][1] }} name="username" readonly>
         </div>
         <button type="submit">Game over, notify next players in queue</button>
       </form>

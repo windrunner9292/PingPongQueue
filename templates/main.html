@@ -1,37 +1,67 @@
 {% extends "base.html" %}
-{% block title %}Main Page{% endblock %}
+{% block cssOverride %}<link rel="stylesheet" type="text/css" href="../static/css/custom.css">{% endblock %}
+{% block title %}Main Dashboard{% endblock %}
 
 {% block content %}
   {% with messages = get_flashed_messages() %}
     {% if messages %}
+      <br/>
       {% for msg in messages %}
-        <p>{{msg}}</p>
+        <p class="sub-headers">{{msg}}</p>
       {% endfor %}
     {% endif %}
   {% endwith %}
 
-  <p>Add the Match</p>
-  <form action="main" method="post">
-    <label for="firstPlayer">Player 1: </label>
-    <select name="firstPlayer">
-      {% for user in currentUsers %}
-        <option value= {{ user }}>{{ user }}</option>
-      {% endfor %}
-    </select>
-    <label for="secondPlayer">Player 2: </label>
-    <select name="secondPlayer">
-      {% for user in currentUsers %}
-        <option value= {{ user }} >{{ user }}</option>
-      {% endfor %}
-    </select>
-    <input type="submit" value="Submit">
-  </form>
+<br/>
 
-    <p>Current Queue</p>
-    {% for queue in currentQueue %}
-        <p>{{ queue }}</p>
+  {% if currentQueue|length == 0 %}
+    <div>
+      <p class="sub-headers center">There is no current match going on.</p> 
+    <div>
+  {% elif currentQueue|length > 0 %}
+    <p class="sub-headers">Currently playing:</p>
+    <div class="players-container">
+      <form action="deleteEntryFromQueue" method="post"></form>
+        <p>{{ currentQueue[0][0] }} vs. {{ currentQueue[0][1] }}</p>
+        <div class="players-list">
+        <input display="inline" type="text" class="form-control" placeholder="Username" name="username">
+        <input display="inline" type="text" class="form-control" placeholder="Username" name="username">
+        </div>
+        <button type="submit">Game over, notify next players in queue</button>
+      </form>
+    </div>
+    <br/>
+
+  {% endif %}
+  {% if currentQueue|length == 1 %}
+    <p class="sub-headers">There is no current queue.</p>
+  {% else %}
+    <p class="sub-headers">Current Queue:</p>
+    <div class="players-container">
+    {% for i in range(1,currentQueue|length) %}
+        <p>{{ currentQueue[i][0] }} vs. {{ currentQueue[i][1] }}</p>
     {% endfor %}
+  </div>
+  {% endif %}
 
-    
+  <br/>
+  <p class="sub-headers">Add the Match</p>
+  <div class="players-container">
+    <form action="{{url_for('main')}}" method="post">
+      <label for="firstPlayer">Player 1: </label>
+      <select name="firstPlayer">
+        {% for user in currentUsers %}
+          <option value= {{ user }}>{{ user }}</option>
+        {% endfor %}
+      </select>
+      <label for="secondPlayer">Player 2: </label>
+      <select name="secondPlayer">
+        {% for user in currentUsers %}
+          <option value= {{ user }} >{{ user }}</option>
+        {% endfor %}
+      </select>
+      <input type="submit" value="Submit">
+    </form>
+  </div>
 
 {% endblock %}

@@ -4,8 +4,9 @@
 {% block content %}
   {% with messages = get_flashed_messages() %}
     {% if messages %}
+      <br/>
       {% for msg in messages %}
-        <p>{{msg}}</p>
+        <p class="sub-headers">{{msg}}</p>
       {% endfor %}
     {% endif %}
   {% endwith %}

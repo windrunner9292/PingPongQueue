@@ -1,0 +1,42 @@
+.sub-headers{
+    font-family:sans-serif;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.players-container{
+    text-align: center;
+    border: 3px solid green;
+    border-radius:25px;
+    padding:10px 10px 0px;
+}
+
+.players-list{
+    text-align: center;
+}
+
+.center {
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+    padding: 10px;
+    }
+
+.main-header{
+    font-family:sans-serif;
+    text-align: center;
+    font-weight: bold;
+}
+
+.column{
+    float: left;
+}
+
+.left{
+    width: 70%;
+}
+
+.right{
+    width: 30%;
+}

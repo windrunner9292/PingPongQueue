@@ -8,12 +8,12 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 # this file is to be ignored
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
-    confidential_info = [content.strip() for content in f.readlines()]
+    confidential_info = [str(content.strip()) for content in f.readlines()]
 
 # configs for the db
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
 app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
 
 # configs for the email
@@ -85,6 +85,9 @@ def sendNotificationEmail(email):
     link = url_for('confirmEmail', token=token, _external=True)
     msg.body = 'Your link is {}'.format(link)
     mail.send(msg)
+
+def deleteEntryFromQueue():
+    return
 
 @app.route("/")
 def home():
@@ -160,6 +163,18 @@ def confirmEmail(token):
         flash("The token is expired.", "info")
     return redirect(url_for("home"))
 
+@app.route("/redirectToMain", methods=["POST","GET"])
+def redirectToMain():
+    return redirect(url_for("main"))
+
+@app.route("/showDashboard", methods=["POST","GET"])
+def redirectMainGetRequest():
+    currentUsers = getAllUsers()
+    currentQueue = getCurrentQueue()
+    return render_template("main.html", 
+                currentUsers=currentUsers,
+                currentQueue=currentQueue)
+
 @app.route("/main", methods=["POST","GET"])
 def main():
     # main page where the queue display will happen.
@@ -170,14 +185,15 @@ def main():
             firstPlayer = request.form["firstPlayer"]
             secondPlayer = request.form["secondPlayer"]
             addQueue(firstPlayer, secondPlayer)
-        currentQueue = getCurrentQueue()
-        return render_template("main.html", 
-                                currentUsers=currentUsers,
-                                currentQueue=currentQueue)
-        
+            currentQueue = getCurrentQueue()
+            return redirect(url_for("main", 
+                                    currentUsers=currentUsers,
+                                    currentQueue=currentQueue))
+        if request.method == "GET":
+            return redirect(url_for("redirectMainGetRequest"))
     else:
         flash("You are not logged in!")
-        return redirect(url_for("home"))    
+        return redirect(url_for("home"))
 
 @app.route("/logout", methods=["GET","POST"])
 def logout():

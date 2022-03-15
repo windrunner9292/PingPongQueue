@@ -4,8 +4,9 @@
 {% block content %}
   {% with messages = get_flashed_messages() %}
     {% if messages %}
+      <br/>
       {% for msg in messages %}
-        <p>{{msg}}</p>
+        <p class="sub-headers">{{msg}}</p>
       {% endfor %}
     {% endif %}
   {% endwith %}
@@ -16,20 +17,39 @@
       <input type="submit" value="Start over">
     </form>
   {% elif "user" not in session%}
-    <form action="login" method="post">
-      Enter Username : &nbsp;<input type="text" name="username" /><br>
-      Enter Email : &nbsp;<input type="email" name="email" /><br>
-      <input type="submit" value="Log In">
-    </form>
-    <form action="signup" method="get">
-      <input type="submit" value="Sign Up">
-    </form>
-  {% elif "user" in session %}
-    <p>You are currently logged in as {{ session["user"] }}</p>
-    <form action="logout" method="get">
-      <input type="submit" value="Log Out"> 
-    </form>
-  {% endif %}
+  <div class="container">
+    <div class="row justify-content-center align-items-center" style="height:100vh">
+        <div class="col-4">
+            <div class="card">
+                <div class="card-body">
+                    <h1>Log In</h1>
+                    <form action="login" autocomplete="off" method="post">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Username" name="username">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control" placeholder="Email" name="email">
+                        </div>
+                        <button type="submit" id="sendlogin" class="btn btn-primary">Submit</button>
+                    </form>
+                    <br/>
+                    <form action="signup" autocomplete="off" method="get">
+                      <div class="form-group">
+                      <button type="submit" id="sendlogin" class="btn btn-primary">Sign Up</button>
+                  </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% elif "user" in session %}
+  <p>You are currently logged in as {{ session["user"] }}</p>
+  <form action="logout" method="get">
+    <input type="submit" value="Log Out"> 
+  </form>
+{% endif %}
+
+  
 
   
   

@@ -22,15 +22,15 @@
     <p class="sub-headers">Currently playing:</p>
     <div class="players-container">
 	  <p><strong>{{ currentQueue[0][0] }}</strong> vs. <strong>{{ currentQueue[0][1] }}</strong></p>
-      <form style="inline" action="{{ url_for('main') }}" method="post">
+      <form action="{{ url_for('main') }}" method="post">
         <div class="players-list">
         <input class="player" type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer" readonly>
         <input class="player" type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer" readonly>
         </div>
         <input type="submit" name="action" value="Game over, Notify next players in Queue"/>
-		<input type="submit" name="action" value="Game over, Just delete us from the Queue"/>
+		    <input type="submit" name="action" value="Game over, Just delete us from the Queue"/>
       </form>
-	  <form style="inline" action="{{ url_for('main') }}" method="post">
+	  <form action="{{ url_for('main') }}" method="post">
 	  
     </div>
     <br/>
@@ -57,13 +57,13 @@
   <p class="sub-headers">Add the Match</p>
   <div class="players-container">
     <form action="{{url_for('main')}}" method="post">
-      <label for="firstPlayer">Player 1: </label>
+      <label for="firstPlayer"><strong>Player 1: </strong></label>
       <select name="firstPlayer">
         {% for user in currentUsers %}
           <option value= {{ user }}>{{ user }}</option>
         {% endfor %}
       </select>
-      <label for="secondPlayer">&emsp;Player 2: </label>
+      <label for="secondPlayer">&emsp;<strong>Player 2: </strong></label>
       <select name="secondPlayer">
         {% for user in currentUsers %}
           <option value= {{ user }} >{{ user }}</option>

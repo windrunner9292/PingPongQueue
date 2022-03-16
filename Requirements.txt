@@ -1,6 +1,22 @@
-python -m pip install flask
-python -m pip install flask-mail
-python -m pip install SQLAlchemy
-python -m pip install itsdangerous
-python -m pip install psycopg2
-
+beautifulsoup4==4.10.0
+blinker==1.4
+bs4==0.0.1
+certifi==2021.10.8
+charset-normalizer==2.0.11
+click==8.0.3
+colorama==0.4.4
+Flask==2.0.2
+Flask-Mail==0.9.1
+Flask-SQLAlchemy==2.5.1
+greenlet==1.1.2
+gunicorn==20.1.0
+idna==3.3
+itsdangerous==2.0.1
+Jinja2==3.0.3
+MarkupSafe==2.0.1
+psycopg2==2.9.3
+requests==2.27.1
+soupsieve==2.3.1
+SQLAlchemy==1.4.31
+urllib3==1.26.8
+Werkzeug==2.0.3

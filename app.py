@@ -254,4 +254,4 @@ def logout():
 if __name__ == "__main__":
     #db.drop_all()
     db.create_all()
-    app.run(debug=True, port = 9999)
+    app.run(debug=True, port = process.env.PORT || 7000)

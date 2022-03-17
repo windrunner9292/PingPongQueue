@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
-
+"os.environ['S3_KEY']"
 
 # this file is to be ignored
 '''
@@ -17,7 +17,7 @@ with open(path) as f:
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
 #app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
-app.config['SQLALCHEMY_DATABASE_URI'] = process.env.DBSTRING
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
 app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
 
 # configs for the email
@@ -28,9 +28,9 @@ app.config['MAIL_USE_SSL'] = False
 #app.config['MAIL_USERNAME'] = confidential_info[0]
 #app.config['MAIL_PASSWORD'] = confidential_info[1]
 #app.config['SECRET_KEY'] = confidential_info[2]
-app.config['MAIL_USERNAME'] = process.env.MAILUSERNAME
-app.config['MAIL_PASSWORD'] = process.env.MAILPASSWORD
-app.config['SECRET_KEY'] = process.env.SECRETKEY
+app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
+app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
+app.config['SECRET_KEY'] = os.environ['SECRETKEY']
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 TokenTimer = 300
 
@@ -253,5 +253,6 @@ def logout():
 
 if __name__ == "__main__":
     #db.drop_all()
-    db.create_all()
-    app.run(debug=True, port = process.env.PORT || 7000)
+    #db.create_all()
+    port = int(os.environ.get('PORT', 7000))
+    app.run(debug=True, port = port)

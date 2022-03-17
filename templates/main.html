@@ -27,8 +27,8 @@
         <input class="player" type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer" readonly>
         <input class="player" type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer" readonly>
         </div>
-        <input type="submit" name="action" value="Game over, Notify next players in Queue"/>
-		    <input type="submit" name="action" value="Game over, Just delete us from the Queue"/>
+        <!-- <input type="submit" name="action" value="Game over, Notify next players in Queue"/> -->
+		    <input type="submit" name="action" value="Game over"/>
       </form>
 	  <form action="{{ url_for('main') }}" method="post">
 	  

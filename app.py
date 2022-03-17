@@ -217,7 +217,7 @@ def main():
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue))
-            if request.form['action'] == 'Game over, Just delete us from the Queue':    # button for deleting the first queue.
+            if request.form['action'] == 'Game over':    # button for deleting the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer)

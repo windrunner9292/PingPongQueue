@@ -29,9 +29,55 @@
     font-weight: bold;
 }
 
-.player{
+#responsiveCard {
+    
+  }
+
+#responsiveContent {
     
 }
+
+@media screen and (max-width: 320px) {
+    /* comes into effect for screens less than or equal to 320 pixels */
+    #responsiveCard { 
+    width: 200px;
+    position: relative;
+    display: -ms-flexbox;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 0.25rem;
+    }
+
+    #responsiveContent{
+        display: block;
+    }
+  }
+
+@media screen and (min-width: 321px) and (max-width: 480px) {
+    /* comes into effect for screens between 321 and 480 pixels (inclusive) */
+    #responsiveCard {
+    width: 300px;
+    position: relative;
+    display: -ms-flexbox;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 0.25rem;
+    }
+
+    #responsiveContent{
+        display: block;
+    }
+  }
 
 .column{
     float: left;

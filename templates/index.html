@@ -18,9 +18,9 @@
     </form>
   {% elif "user" not in session%}
   <div class="container">
-    <div class="row justify-content-center align-items-center" style="height:100vh">
+    <div class="row justify-content-center align-items-center" id= "responsiveContent" style="height:100vh">
         <div class="col-4">
-            <div class="card">
+            <div class="card" id="responsiveCard">
                 <div class="card-body">
                     <h1>Log In</h1>
                     <form action="login" autocomplete="off" method="post">
@@ -35,7 +35,7 @@
                     <br/>
                     <form action="signup" autocomplete="off" method="get">
                       <div class="form-group">
-                      <button type="submit" id="sendlogin" class="btn btn-primary">Sign Up</button>
+                      <!--<button type="submit" id="sendlogin" class="btn btn-primary">Sign Up</button>-->
                   </form>
                 </div>
             </div>

@@ -4,14 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
-"os.environ['S3_KEY']"
 
 # this file is to be ignored
-'''
+"""
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
-'''
+"""
 
 # configs for the db
 app = Flask(__name__)
@@ -22,6 +21,7 @@ app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
 
 # configs for the email
 app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
+#app.config['MAIL_PORT'] = 465
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
@@ -31,6 +31,7 @@ app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
 app.config['SECRET_KEY'] = os.environ['SECRETKEY']
+#app.config['SECURITY_EMAIL_SENDER '] = confidential_info[0]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 TokenTimer = 300
 
@@ -203,21 +204,36 @@ def main():
             if request.form['action'] == 'Submit':                                      # button for adding the match to the queue
                 firstPlayer = request.form["firstPlayer"]
                 secondPlayer = request.form["secondPlayer"]
+                if firstPlayer == secondPlayer:                                         # when accidentally adding same players
+                    flash("You can't play yourself!", "info")
+                    currentQueue = getCurrentQueue()
+                    return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue))
                 addQueue(firstPlayer, secondPlayer)
                 currentQueue = getCurrentQueue()
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue))
-            if request.form['action'] == 'Game over, Notify next players in Queue':     # button for notifying and deleting the first queue.
+            if request.form['action'] == 'Game over, send email':     # button for notifying and deleting the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
+                deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
                 sendNotificationEmail(0)
+                currentQueue = getCurrentQueue()
+                flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue))
+            if request.form['action'] == "Game over, don't send email" or request.form['action'] == "Game over":    # button for deleting the first queue.
+                firstCurrentPlayer = request.form["firstCurrentPlayer"]
+                secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
                 currentQueue = getCurrentQueue()
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue))
-            if request.form['action'] == 'Game over':    # button for deleting the first queue.
+            if request.form['action'] == "Game over":                           # button for deleting the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
@@ -256,3 +272,4 @@ if __name__ == "__main__":
     #db.create_all()
     port = int(os.environ.get('PORT', 7000))
     app.run(debug=True, port = port)
+    #app.run(debug=True, port = 7000)

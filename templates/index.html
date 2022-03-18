@@ -12,10 +12,13 @@
   {% endwith %}
 
   {% if "temporary" in session %}
-    <p>Link expires in 5 minutes. Click the button below to start over.</p>
-    <form action="logout" method="post">
-      <input type="submit" value="Start over">
-    </form>
+    <p class="center-content">Link expires in 5 minutes. Click the button below to start over.</p>
+    <p class="center-content">Close this link after you click on the confirmation email.</p>
+    <div class="center-content"> 
+      <form action="logout" method="post">
+        <input type="submit" value="Start over">
+      </form>
+  </div>
   {% elif "user" not in session%}
   <div class="container">
     <div class="row justify-content-center align-items-center" id= "responsiveContent" style="height:100vh">
@@ -35,7 +38,7 @@
                     <br/>
                     <form action="signup" autocomplete="off" method="get">
                       <div class="form-group">
-                      <!--<button type="submit" id="sendlogin" class="btn btn-primary">Sign Up</button>-->
+                      <button type="submit" id="sendlogin" class="btn btn-primary">Sign Up</button>
                   </form>
                 </div>
             </div>
@@ -49,9 +52,5 @@
   </form>
 {% endif %}
 
-  
-
-  
-  
 
 {% endblock %}

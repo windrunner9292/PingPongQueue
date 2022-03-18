@@ -27,8 +27,13 @@
         <input class="player" type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer" readonly>
         <input class="player" type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer" readonly>
         </div>
-        <!-- <input type="submit" name="action" value="Game over, Notify next players in Queue"/> -->
-		    <input type="submit" name="action" value="Game over"/>
+
+        {% if currentQueue|length == 1 %}
+		      <input type="submit" name="action" value="Game over"/>
+        {% elif currentQueue|length > 1 %}
+          <input type="submit" name="action" value="Game over, don't send email"/>
+		      <input type="submit" name="action" value="Game over, send email"/>
+        {% endif %}
       </form>
 	  <form action="{{ url_for('main') }}" method="post">
 	  
@@ -59,12 +64,14 @@
     <form action="{{url_for('main')}}" method="post">
       <label for="firstPlayer"><strong>Player 1: </strong></label>
       <select name="firstPlayer">
+          <!---<option value="select" selected disabled hidden>Select</option>--->
         {% for user in currentUsers %}
           <option value= {{ user }}>{{ user }}</option>
         {% endfor %}
       </select>
       <label for="secondPlayer">&emsp;<strong>Player 2: </strong></label>
       <select name="secondPlayer">
+          <!---<option value="select" selected disabled hidden>Select</option>--->
         {% for user in currentUsers %}
           <option value= {{ user }} >{{ user }}</option>
         {% endfor %}

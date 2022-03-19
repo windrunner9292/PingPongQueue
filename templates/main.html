@@ -21,37 +21,45 @@
   {% elif currentQueue|length > 0 %}
     <p class="sub-headers">Currently playing:</p>
     <div class="players-container">
-	  <p><strong>{{ currentQueue[0][0] }}</strong> vs. <strong>{{ currentQueue[0][1] }}</strong></p>
+    {% if currentQueue[0][0] == "Nick.S" %}  
+	    <p><span style="color: #FF69B4; font-weight: bold">{{ currentQueue[0][0] }}</span> vs. <strong>{{ currentQueue[0][1] }}</strong></p>
+    {% elif currentQueue[0][1] == "Nick.S" %}
+      <p><span style="font-weight: bold">{{ currentQueue[0][0] }}</span> vs. <span style="color: #FF69B4; font-weight: bold">{{ currentQueue[0][1] }}</span></p>
+    {% else %}
+      <p><span style="font-weight: bold">{{ currentQueue[0][0] }}</span> vs. <span style="font-weight: bold">{{ currentQueue[0][1] }}</span></p>
+    {% endif %}  
       <form action="{{ url_for('main') }}" method="post">
-        <div class="players-list">
-        <input class="player" type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer" readonly>
-        <input class="player" type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer" readonly>
-        </div>
-
+        <input type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer">
+        <input type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer">
+        <input type="hidden" value={{ currentQueue[0][2] }} name="queueID">
         {% if currentQueue|length == 1 %}
 		      <input type="submit" name="action" value="Game over"/>
         {% elif currentQueue|length > 1 %}
-          <input type="submit" name="action" value="Game over, don't send email"/>
-		      <input type="submit" name="action" value="Game over, send email"/>
+        <div class="inline-display">
+          <input type="submit" name="action" value="Game over"/>
+          <div class="inline-display">
+		        <input type="checkbox" id="eMail" name="sendEmail">
+            <label for="eMail"> Notify next players</label><br>
+          </div>
+        </div>
         {% endif %}
       </form>
-	  <form action="{{ url_for('main') }}" method="post">
-	  
     </div>
     <br/>
-
   {% endif %}
+
   {% if currentQueue|length == 1 %}
     <p class="sub-headers">There is no current queue.</p>
-  {% else %}
+  {% elif currentQueue|length > 1 %}
     <p class="sub-headers">Current Queue:</p>
     <div class="players-container">
     {% for i in range(1,currentQueue|length) %}
 		<form action="{{ url_for('main') }}" method="post">
-			<input class="player" type="hidden" value={{ currentQueue[i][0] }} name="firstPlayerInQueue" readonly>
-			<input class="player" type="hidden" value={{ currentQueue[i][1] }} name="secondPlayerInQueue" readonly>
-			<input class="player" type="hidden" value={{ i }} name="currentIteration" readonly>
-			<label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }}</strong>&emsp;</label>
+			<input type="hidden" value={{ currentQueue[i][0] }} name="firstPlayerInQueue">
+			<input type="hidden" value={{ currentQueue[i][1] }} name="secondPlayerInQueue">
+			<input type="hidden" value={{ currentQueue[i][2] }} name="queueID">
+      <input type="hidden" value={{ i }} name="currentIteration">
+			<label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }}</strong>&nbsp;</label>
 			<input type="submit" name="action" value="Delete"/>
 		</form>
     {% endfor %}
@@ -59,23 +67,29 @@
   {% endif %}
 
   <br/>
-  <p class="sub-headers">Add the Match</p>
+  <p class="sub-headers">Add a Match</p>
   <div class="players-container">
     <form action="{{url_for('main')}}" method="post">
-      <label for="firstPlayer"><strong>Player 1: </strong></label>
-      <select name="firstPlayer">
-          <!---<option value="select" selected disabled hidden>Select</option>--->
-        {% for user in currentUsers %}
-          <option value= {{ user }}>{{ user }}</option>
-        {% endfor %}
-      </select>
-      <label for="secondPlayer">&emsp;<strong>Player 2: </strong></label>
-      <select name="secondPlayer">
-          <!---<option value="select" selected disabled hidden>Select</option>--->
-        {% for user in currentUsers %}
-          <option value= {{ user }} >{{ user }}</option>
-        {% endfor %}
-      </select>
+      <div>
+        <label for="firstPlayer"><strong>Player 1: </strong></label>
+        <select name="firstPlayer">
+          {% for user in currentUsers %}
+            {% if user == session["user"] %}
+              <option value= {{ user }} selected>{{ user }}</option>
+            {% else %}
+              <option value= {{ user }}>{{ user }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="secondPlayer"><strong>Player 2: </strong></label>
+        <select name="secondPlayer">
+          {% for user in currentUsers %}
+            <option value= {{ user }} >{{ user }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <input type="submit" name="action" value="Submit"/>
     </form>
   </div>

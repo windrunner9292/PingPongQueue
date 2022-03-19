@@ -5,33 +5,38 @@ from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
-# this file is to be ignored
-"""
-path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
+# LOCAL configs
+""" path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
-"""
-
-# configs for the db
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
-#app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
+app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
+app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
+app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = confidential_info[0]
+app.config['MAIL_PASSWORD'] = confidential_info[1]
+app.config['SECRET_KEY'] = confidential_info[2]
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+TokenTimer = 300 """
+
+# PROD configs
+app = Flask(__name__)
+app.permanent_session_lifetime = timedelta(days=5)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
 app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
-
-# configs for the email
 app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
 #app.config['MAIL_PORT'] = 465
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
-#app.config['MAIL_USERNAME'] = confidential_info[0]
-#app.config['MAIL_PASSWORD'] = confidential_info[1]
-#app.config['SECRET_KEY'] = confidential_info[2]
 app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
 app.config['SECRET_KEY'] = os.environ['SECRETKEY']
-#app.config['SECURITY_EMAIL_SENDER '] = confidential_info[0]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 TokenTimer = 300
 
@@ -70,7 +75,7 @@ def getAllUsers():
 
 def getCurrentQueue():
     # returns the current users in the table
-    return [(queue.firstUser, queue.secondUser) for queue in Queue.query.all()]
+    return [(queue.firstUser, queue.secondUser, queue.id) for queue in Queue.query.all()]
 
 def addUser(username, email):
     # adds the user to the Users db
@@ -84,9 +89,9 @@ def addQueue(firstUser, secondUser):
     db.session.add(queue)
     db.session.commit()
 
-def deleteQueue(firstUser, secondUser):
+def deleteQueue(firstUser, secondUser,queueID):
     # delete the entry from the queue
-    Queue.query.filter_by(firstUser=firstUser, secondUser=secondUser).delete()
+    Queue.query.filter_by(id=queueID, firstUser=firstUser, secondUser=secondUser).delete()
     db.session.commit()
 
 def sendConfirmationEmail(username, email):
@@ -215,36 +220,24 @@ def main():
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue))
-            if request.form['action'] == 'Game over, send email':     # button for notifying and deleting the first queue.
+            if request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
-                deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
-                sendNotificationEmail(0)
+                queueID = request.form["queueID"]
+                sendEmailChecked = "sendEmail" in request.form
+                deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                 currentQueue = getCurrentQueue()
-                flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                if(sendEmailChecked):
+                    flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                    sendNotificationEmail(0)
                 return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue))
-            if request.form['action'] == "Game over, don't send email" or request.form['action'] == "Game over":    # button for deleting the first queue.
-                firstCurrentPlayer = request.form["firstCurrentPlayer"]
-                secondCurrentPlayer = request.form["secondCurrentPlayer"]
-                deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
-                currentQueue = getCurrentQueue()
-                return redirect(url_for("main", 
-                                        currentUsers=currentUsers,
-                                        currentQueue=currentQueue))
-            if request.form['action'] == "Game over":                           # button for deleting the first queue.
-                firstCurrentPlayer = request.form["firstCurrentPlayer"]
-                secondCurrentPlayer = request.form["secondCurrentPlayer"]
-                deleteQueue(firstCurrentPlayer,secondCurrentPlayer)
-                currentQueue = getCurrentQueue()
-                return redirect(url_for("main", 
-                                        currentUsers=currentUsers,
-                                        currentQueue=currentQueue))
-            if request.form['action'] == 'Delete':                                      # button for deleting the n'th queue.
+            if request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
-                deleteQueue(firstPlayerInQueue,secondPlayerInQueue)
+                queueID = request.form["queueID"]
+                deleteQueue(firstPlayerInQueue,secondPlayerInQueue,queueID)
                 currentQueue = getCurrentQueue()
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
@@ -272,4 +265,4 @@ if __name__ == "__main__":
     #db.create_all()
     port = int(os.environ.get('PORT', 7000))
     app.run(debug=True, port = port)
-    #app.run(debug=True, port = 7000)
+    #app.run(debug=True, port = 8000)

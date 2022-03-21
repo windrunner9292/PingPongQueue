@@ -21,7 +21,7 @@ with open(path) as f:
 
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ruowlwug:9_SvfMnjo6lPkMyFX0dJxSlU8DwYt4-t@ziggy.db.elephantsql.com/ruowlwug'
+app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
 app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
 app.config['MAIL_PORT'] = 465

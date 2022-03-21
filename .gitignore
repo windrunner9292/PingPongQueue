@@ -3,3 +3,4 @@ app copy.py
 site.db
 users.sqlite3
 players.txt
+players_ranked.txt

@@ -4,14 +4,24 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+import random
 
-# LOCAL configs
-""" path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
+""" # LOCAL configs
+path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
+
+path = os.path.join(os.path.dirname(__file__), 'players.txt')
+with open(path) as f:
+    user_info = [content.split(",") for content in f.readlines()]
+
+path = os.path.join(os.path.dirname(__file__), 'players_ranked.txt')
+with open(path) as f:
+    ranked_user_info = [content.split(",") for content in f.readlines()]
+
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
-app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ruowlwug:9_SvfMnjo6lPkMyFX0dJxSlU8DwYt4-t@ziggy.db.elephantsql.com/ruowlwug'
 app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
 app.config['MAIL_PORT'] = 465
@@ -48,15 +58,18 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
+    isParticipatingLeague = db.Column(db.Integer)
+    rank = db.Column(db.Integer, unique=True)
 
     def __repr__(self):
-        return f"User('{self.username}, {self.email}')"
+        return f"User('{self.username}, {self.email}, {self.isParticipatingLeague}, {self.rank}')"
 
 class Queue(db.Model):
     # Queue table definition
     id = db.Column(db.Integer, primary_key=True)
     firstUser = db.Column(db.String(20), unique=False, nullable=False)
     secondUser = db.Column(db.String(50), unique=False, nullable=False)
+    isRankedMatch = db.Column(db.Integer)
 
     def __repr__(self):
         return f"User('{self.username}, {self.email}')"
@@ -75,17 +88,67 @@ def getAllUsers():
 
 def getCurrentQueue():
     # returns the current users in the table
-    return [(queue.firstUser, queue.secondUser, queue.id) for queue in Queue.query.all()]
+    return [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch) for queue in Queue.query.all()]
 
-def addUser(username, email):
+def validateRankedMatch(firstUser, secondUser):
+    # checking the valid ranked match
+    rank_diff = abs(Users.query.filter_by(username=firstUser).first().rank - Users.query.filter_by(username=secondUser).first().rank)
+    return (Users.query.filter_by(username=firstUser).first().isParticipatingLeague == 1 and 
+            Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1 and rank_diff < 5)
+
+def getCurrentLeaderBoard():
+    # getting the list of ranked players.
+
+    rank_users = []
+    for user in Users.query.all():
+        if user.isParticipatingLeague == 1:
+            rank_users.append((user.username, user.rank))
+    rank_users.sort(key=lambda i:i[1])
+    return rank_users
+
+def swapRankings(firstPlayer, secondPlayer, isFirstWin, isSecondWin):
+    # Swapping the ranking if the winner's rank is lower than loser's.
+
+    fp_rank = Users.query.filter_by(username=firstPlayer).first().rank
+    sp_rank = Users.query.filter_by(username=secondPlayer).first().rank
+    if (isFirstWin):
+        if(fp_rank > sp_rank):
+            Users.query.filter_by(username=secondPlayer).first().rank = 99
+            Users.query.filter_by(username=firstPlayer).first().rank = sp_rank
+            Users.query.filter_by(username=secondPlayer).first().rank = fp_rank
+            db.session.commit()
+    if (isSecondWin):
+        if(sp_rank > fp_rank):
+            Users.query.filter_by(username=secondPlayer).first().rank = 99
+            Users.query.filter_by(username=firstPlayer).first().rank = sp_rank
+            Users.query.filter_by(username=secondPlayer).first().rank = fp_rank
+            db.session.commit()
+
+def getCurrentUserParticipationStatus(username):
+    return Users.query.filter_by(username=username).first().isParticipatingLeague
+
+def updateLeagueParticipation(username, flag):
+    Users.query.filter_by(username=username).first().isParticipatingLeague = flag
+    db.session.commit()
+
+def updateLeagueRanking(username, rank):
+    Users.query.filter_by(username=username).first().rank = rank
+    db.session.commit()
+
+def addUser(username, email, rank):
     # adds the user to the Users db
-    user = Users(username=username, email=email)
+    user = Users(username=username,
+                 email=email,
+                 isParticipatingLeague=0,
+                 rank = rank)
     db.session.add(user)
     db.session.commit()
 
-def addQueue(firstUser, secondUser):
+def addQueue(firstUser, secondUser, isRankedMatch):
     # adds the row to Queue db
-    queue = Queue(firstUser=firstUser, secondUser=secondUser)
+    queue = Queue(firstUser=firstUser,
+                  secondUser=secondUser,
+                  isRankedMatch=isRankedMatch)
     db.session.add(queue)
     db.session.commit()
 
@@ -174,7 +237,7 @@ def confirmEmail(token):
     try:
         if "user" in session:                                                               # if temporary user session is detected, add the user to the db.
             email = s.loads(token, salt='email-confirmed', max_age=TokenTimer)              # TokenTimer represents the time in seconds.
-            addUser(session["user"], session["email"])
+            addUser(session["user"], session["email"], random.randint(50,200))
             flash("Account has been successfully created for {}!".format(session["user"]), "info")
             session.pop("user", None)                                                       # then delete the temporary user session info.
             session.pop("email", None)
@@ -193,11 +256,16 @@ def redirectToMain():
 @app.route("/showDashboard", methods=["POST","GET"])
 def redirectMainGetRequest():
     # This handles the GET request for the main page.
+    user = session["user"]
     currentUsers = getAllUsers()
     currentQueue = getCurrentQueue()
+    currentRankUsers = getCurrentLeaderBoard()
+    isJoiningLeague = getCurrentUserParticipationStatus(user)
     return render_template("main.html", 
                 currentUsers=currentUsers,
-                currentQueue=currentQueue)
+                currentQueue=currentQueue,
+                currentRankUsers=currentRankUsers,
+                isJoiningLeague=isJoiningLeague)
 
 @app.route("/main", methods=["POST","GET"])
 def main():
@@ -205,26 +273,64 @@ def main():
     if "user" in session:
         user = session["user"]
         currentUsers = getAllUsers()
+        currentRankUsers = getCurrentLeaderBoard()
+        isJoiningLeague = getCurrentUserParticipationStatus(user)
         if request.method == "POST":
             if request.form['action'] == 'Submit':                                      # button for adding the match to the queue
                 firstPlayer = request.form["firstPlayer"]
                 secondPlayer = request.form["secondPlayer"]
-                if firstPlayer == secondPlayer:                                         # when accidentally adding same players
-                    flash("You can't play yourself!", "info")
+                isRankedMatch = "rankedMatch" in request.form
+                if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
+                    flash("Invalid ranked match", 'error')
                     currentQueue = getCurrentQueue()
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
-                                        currentQueue=currentQueue))
-                addQueue(firstPlayer, secondPlayer)
-                currentQueue = getCurrentQueue()
-                return redirect(url_for("main", 
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
+                if firstPlayer == secondPlayer:                                         # when accidentally adding same players
+                    flash("You can't play yourself!", "error")
+                    currentQueue = getCurrentQueue()
+                    return redirect(url_for("main",
                                         currentUsers=currentUsers,
-                                        currentQueue=currentQueue))
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
+                if (isRankedMatch):
+                    addQueue(firstPlayer, secondPlayer, 1)
+                else:
+                    addQueue(firstPlayer, secondPlayer, 0)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
             if request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 queueID = request.form["queueID"]
                 sendEmailChecked = "sendEmail" in request.form
+                firstWins = "firstWins" in request.form
+                secondWins = "secondWins" in request.form
+                currentQueue = getCurrentQueue()
+                if (currentQueue[0][3]==1):
+                    if (not firstWins and not secondWins):
+                        flash("Winner must be chosen!",'error')
+                        return redirect(url_for("main",
+                                            currentUsers=currentUsers,
+                                            currentQueue=currentQueue,
+                                            currentRankUsers=currentRankUsers,
+                                            isJoiningLeague=isJoiningLeague))
+                    elif (firstWins and secondWins):
+                        flash("There can only be one winner!",'error')
+                        return redirect(url_for("main",
+                                            currentUsers=currentUsers,
+                                            currentQueue=currentQueue,
+                                            currentRankUsers=currentRankUsers,
+                                            isJoiningLeague=isJoiningLeague))
+                    else:
+                        swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                 currentQueue = getCurrentQueue()
                 if(sendEmailChecked):
@@ -232,7 +338,9 @@ def main():
                     sendNotificationEmail(0)
                 return redirect(url_for("main",
                                         currentUsers=currentUsers,
-                                        currentQueue=currentQueue))
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
             if request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
@@ -241,7 +349,31 @@ def main():
                 currentQueue = getCurrentQueue()
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
-                                        currentQueue=currentQueue))        
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague)) 
+            if request.form['action'] == 'Join the League':                                          # button for deleting the n'th queue.
+                #firstPlayerInQueue = request.form["firstPlayerInQueue"]
+                #secondPlayerInQueue = request.form["secondPlayerInQueue"]
+                #queueID = request.form["queueID"]
+                updateLeagueParticipation(user, 1)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
+            if request.form['action'] == 'Leave the League':                                          # button for deleting the n'th queue.
+                #firstPlayerInQueue = request.form["firstPlayerInQueue"]
+                #secondPlayerInQueue = request.form["secondPlayerInQueue"]
+                #queueID = request.form["queueID"]
+                updateLeagueParticipation(user, 0)
+                currentQueue = getCurrentQueue()
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))        
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:

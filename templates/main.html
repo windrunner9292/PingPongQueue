@@ -3,24 +3,46 @@
 {% block title %}Main Dashboard{% endblock %}
 
 {% block content %}
-  {% with messages = get_flashed_messages() %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <br/>
-      {% for msg in messages %}
+      {% for category, msg in messages %}
+      <div class="{{ category }}">
         <p class="sub-headers">{{msg}}</p>
+      </div>
       {% endfor %}
     {% endif %}
   {% endwith %}
-
 <br/>
 
+<!---
+{% if isJoiningLeague == 0 %}
+<div class="center-content">
+  <form action="{{ url_for('main') }}" method="post">
+  <input type="submit" name="action" value="Join the League" />
+  </form>
+</div>
+{% elif isJoiningLeague == 1 %}
+<div class="center-content">
+  <form action="{{ url_for('main') }}" method="post">
+  <input type="submit" name="action" value="Leave the League" />
+  </form>
+</div>
+{% endif %}
+-->
+
+<br/>
   {% if currentQueue|length == 0 %}
     <div class="sub-headers">
       <p >There is no current match going on.</p> 
     <div>
   {% elif currentQueue|length > 0 %}
-    <p class="sub-headers">Currently playing:</p>
-    <div class="players-container">
+    {% if currentQueue[0][3] == 1 %}
+      <p class="sub-headers">Currently playing <span style="color:red">Ranked Match:</span></p>
+    {% elif currentQueue[0][3] == 0 %}
+      <p class="sub-headers">Currently playing <span style="color:red">Normal Match:</span></p>
+    {% endif %}
+    <div id="players-container">
     {% if currentQueue[0][0] == "Nick.S" %}  
 	    <p><span style="color: #FF69B4; font-weight: bold">{{ currentQueue[0][0] }}</span> vs. <strong>{{ currentQueue[0][1] }}</strong></p>
     {% elif currentQueue[0][1] == "Nick.S" %}
@@ -33,14 +55,26 @@
         <input type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer">
         <input type="hidden" value={{ currentQueue[0][2] }} name="queueID">
         {% if currentQueue|length == 1 %}
-		      <input type="submit" name="action" value="Game over"/>
-        {% elif currentQueue|length > 1 %}
         <div class="inline-display">
-          <input type="submit" name="action" value="Game over"/>
-          <div class="inline-display">
-		        <input type="checkbox" id="eMail" name="sendEmail">
-            <label for="eMail"> Notify next players</label><br>
-          </div>
+          {% if currentQueue[0][3] == 1 %}  
+            <input type="checkbox" id="firstWins" name="firstWins">
+            <input type="submit" class="button2" name="action" value="Game over"/>
+            <input type="checkbox" id="secondWins" name="secondWins">
+          {% elif currentQueue[0][3] == 0 %}
+            <input type="submit" class="button2" name="action" value="Game over"/>
+          {% endif %}
+        </div>
+        {% elif currentQueue|length > 1 %}
+          {% if currentQueue[0][3] == 1 %}  
+            <input type="checkbox" id="firstWins" name="firstWins">
+            <input type="submit" class="button2" name="action" value="Game over"/>
+            <input type="checkbox" id="secondWins" name="secondWins">
+          {% elif currentQueue[0][3] == 0 %}
+            <input type="submit" class="button2" name="action" value="Game over"/>
+          {% endif %}
+        <div class="inline-display">
+          <input type="checkbox" id="eMail" name="sendEmail">
+          <label for="eMail">Notify next players</label><br>
         </div>
         {% endif %}
       </form>
@@ -52,14 +86,18 @@
     <p class="sub-headers">There is no current queue.</p>
   {% elif currentQueue|length > 1 %}
     <p class="sub-headers">Current Queue:</p>
-    <div class="players-container">
+    <div id="players-container">
     {% for i in range(1,currentQueue|length) %}
 		<form action="{{ url_for('main') }}" method="post">
 			<input type="hidden" value={{ currentQueue[i][0] }} name="firstPlayerInQueue">
 			<input type="hidden" value={{ currentQueue[i][1] }} name="secondPlayerInQueue">
 			<input type="hidden" value={{ currentQueue[i][2] }} name="queueID">
       <input type="hidden" value={{ i }} name="currentIteration">
-			<label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }}</strong>&nbsp;</label>
+      {% if currentQueue[i][3] == 1 %}
+			  <label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }} (ranked)</strong>&nbsp;</label>
+      {% elif currentQueue[i][3] == 0 %}
+        <label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }} (normal)</strong>&nbsp;</label>
+      {% endif %}
 			<input type="submit" name="action" value="Delete"/>
 		</form>
     {% endfor %}
@@ -68,7 +106,7 @@
 
   <br/>
   <p class="sub-headers">Add a Match</p>
-  <div class="players-container">
+  <div id="players-container">
     <form action="{{url_for('main')}}" method="post">
       <div>
         <label for="firstPlayer"><strong>Player 1: </strong></label>
@@ -91,7 +129,38 @@
         </select>
       </div>
       <input type="submit" name="action" value="Submit"/>
+      <div class="inline-display">
+        <div class="inline-display">
+          <input type="checkbox"name="rankedMatch">
+          <label>Ranked Match</label><br>
+        </div>
+      </div>
     </form>
+  </div>
+
+  <br/>
+  <p class="sub-headers">Leaderboard</p>
+  <div id="players-container">
+    <table class="center" style="width:20%">
+      <tr>
+        <th>Rank</th>
+        <th>Player</th>
+      </tr>
+    {% for i in range(0,currentRankUsers|length) %}
+      {% if currentRankUsers[i][0] == session["user"] %}
+      <tr>
+        <td>{{ i+1 }}</td>
+        <td><span style="color:blue; font-weight: bold; font-style:italic">{{ currentRankUsers[i][0] }}</span></td>
+      </tr>
+      {% else %}
+      <tr>
+        <td>{{ i+1 }}</td>
+        <td>{{ currentRankUsers[i][0] }}</td>
+      </tr>
+      {% endif %}
+    {% endfor %}
+    </table>
+    
   </div>
 
 {% endblock %}

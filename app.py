@@ -84,7 +84,7 @@ def isExistingUser(username, email):
 
 def getAllUsers():
     # returns the current users in the table
-    return [user.username for user in Users.query.all()]
+    return sorted([user.username for user in Users.query.all()])
 
 def getCurrentQueue():
     # returns the current users in the table

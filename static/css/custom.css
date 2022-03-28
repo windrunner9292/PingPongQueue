@@ -20,7 +20,16 @@ table, th, td {
     border: 1px solid black;
     border-radius: 10px;
     padding: 4px;
-  }
+}
+
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 150px;
+    height: 150px;
+    display: none;
+}
 
 [type='submit'].button2 {
     margin: 0;
@@ -116,6 +125,13 @@ table, th, td {
         padding:10px 10px 10px;
         margin: auto;
         width: 600px;
+    }
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 125px;
+        height: 125px;
     }
 }
 

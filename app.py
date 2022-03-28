@@ -310,11 +310,12 @@ def main():
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 queueID = request.form["queueID"]
-                sendEmailChecked = "sendEmail" in request.form
+                dontSendEmailChecked = "dontSendEmail" in request.form
                 firstWins = "firstWins" in request.form
                 secondWins = "secondWins" in request.form
                 currentQueue = getCurrentQueue()
-                if (currentQueue[0][3]==1):
+                currentQueueSize = len(currentQueue)
+                if (currentQueue[0][3]==1):                                                 # if the match is ranked:
                     if (not firstWins and not secondWins):
                         flash("Winner must be chosen!",'error')
                         return redirect(url_for("main",
@@ -333,7 +334,7 @@ def main():
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                 currentQueue = getCurrentQueue()
-                if(sendEmailChecked):
+                if(not dontSendEmailChecked and currentQueueSize != 1):
                     flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
                     sendNotificationEmail(0)
                 return redirect(url_for("main",
@@ -351,7 +352,7 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague)) 
+                                        isJoiningLeague=isJoiningLeague))
             if request.form['action'] == 'Join the League':                                          # button for deleting the n'th queue.
                 #firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 #secondPlayerInQueue = request.form["secondPlayerInQueue"]

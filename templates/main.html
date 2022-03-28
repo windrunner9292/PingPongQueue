@@ -3,6 +3,7 @@
 {% block title %}Main Dashboard{% endblock %}
 
 {% block content %}
+  <img src="../static/img/qrcode.PNG" alt="qrcode">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <br/>
@@ -73,8 +74,8 @@
             <input type="submit" class="button2" name="action" value="Game over"/>
           {% endif %}
         <div class="inline-display">
-          <input type="checkbox" id="eMail" name="sendEmail">
-          <label for="eMail">Notify next players</label><br>
+          <input type="checkbox" id="eMail" name="dontSendEmail">
+          <label for="eMail">Don't email players</label><br>
         </div>
         {% endif %}
       </form>

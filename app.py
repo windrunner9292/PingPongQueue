@@ -280,14 +280,14 @@ def main():
                 firstPlayer = request.form["firstPlayer"]
                 secondPlayer = request.form["secondPlayer"]
                 isRankedMatch = "rankedMatch" in request.form
-                if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
+                """ if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
                     flash("Invalid ranked match", 'error')
                     currentQueue = getCurrentQueue()
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        isJoiningLeague=isJoiningLeague)) """
                 if firstPlayer == secondPlayer:                                         # when accidentally adding same players
                     flash("You can't play yourself!", "error")
                     currentQueue = getCurrentQueue()

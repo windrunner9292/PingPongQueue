@@ -94,7 +94,7 @@ def validateRankedMatch(firstUser, secondUser):
     # checking the valid ranked match
     rank_diff = abs(Users.query.filter_by(username=firstUser).first().rank - Users.query.filter_by(username=secondUser).first().rank)
     return (Users.query.filter_by(username=firstUser).first().isParticipatingLeague == 1 and 
-            Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1 and rank_diff < 5)
+            Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1)
 
 def getCurrentLeaderBoard():
     # getting the list of ranked players.
@@ -280,14 +280,14 @@ def main():
                 firstPlayer = request.form["firstPlayer"]
                 secondPlayer = request.form["secondPlayer"]
                 isRankedMatch = "rankedMatch" in request.form
-                """ if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
+                if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
                     flash("Invalid ranked match", 'error')
                     currentQueue = getCurrentQueue()
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague)) """
+                                        isJoiningLeague=isJoiningLeague))
                 if firstPlayer == secondPlayer:                                         # when accidentally adding same players
                     flash("You can't play yourself!", "error")
                     currentQueue = getCurrentQueue()

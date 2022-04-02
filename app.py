@@ -256,16 +256,20 @@ def redirectToMain():
 @app.route("/showDashboard", methods=["POST","GET"])
 def redirectMainGetRequest():
     # This handles the GET request for the main page.
-    user = session["user"]
-    currentUsers = getAllUsers()
-    currentQueue = getCurrentQueue()
-    currentRankUsers = getCurrentLeaderBoard()
-    isJoiningLeague = getCurrentUserParticipationStatus(user)
-    return render_template("main.html", 
-                currentUsers=currentUsers,
-                currentQueue=currentQueue,
-                currentRankUsers=currentRankUsers,
-                isJoiningLeague=isJoiningLeague)
+    if "user" in session:
+        user = session["user"]
+        currentUsers = getAllUsers()
+        currentQueue = getCurrentQueue()
+        currentRankUsers = getCurrentLeaderBoard()
+        isJoiningLeague = getCurrentUserParticipationStatus(user)
+        return render_template("main.html", 
+                    currentUsers=currentUsers,
+                    currentQueue=currentQueue,
+                    currentRankUsers=currentRankUsers,
+                    isJoiningLeague=isJoiningLeague)
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("home"))
 
 @app.route("/main", methods=["POST","GET"])
 def main():

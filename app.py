@@ -128,6 +128,19 @@ def getCurrentUserParticipationStatus(username):
     return Users.query.filter_by(username=username).first().isParticipatingLeague
 
 def updateLeagueParticipation(username, flag):
+    if flag == getCurrentUserParticipationStatus(username):
+        return
+    currentRankUsers = getCurrentLeaderBoard()
+    if flag == 0:                                                           # if the user is getting removed from rank:
+        Users.query.filter_by(username=username).first().rank = None        # set that user's rank to NULL first    
+        userFound = False
+        for user in currentRankUsers:                                       # iterate through the list
+            if user[0] == username:                                         # and correct the rank by negating rank by 1 for all player that were below that player.
+                userFound = True
+            elif userFound:
+                Users.query.filter_by(username=user[0]).first().rank -= 1
+    elif flag == 1:                                                                         # if the user is getting added to the rank:
+        Users.query.filter_by(username=username).first().rank = len(currentRankUsers) + 1   # that user will be put at the end of the rank.
     Users.query.filter_by(username=username).first().isParticipatingLeague = flag
     db.session.commit()
 
@@ -135,12 +148,11 @@ def updateLeagueRanking(username, rank):
     Users.query.filter_by(username=username).first().rank = rank
     db.session.commit()
 
-def addUser(username, email, rank):
-    # adds the user to the Users db
+def addUser(username, email):
+    # adds the user to the Users db; rank is NULL by default.
     user = Users(username=username,
                  email=email,
-                 isParticipatingLeague=0,
-                 rank = rank)
+                 isParticipatingLeague=0)
     db.session.add(user)
     db.session.commit()
 
@@ -213,6 +225,9 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         email = request.form["email"]
+        if ' ' in username:
+            flash(f"Username must not contain space!", "info")
+            return render_template("signup.html")
 
         if (not isExistingUser(username, email)):                           # if there is no existing user, send a confirmation email.
             session["user"] = username                                      # when the user clicks on the link, the user will be added.

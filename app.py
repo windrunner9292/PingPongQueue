@@ -252,7 +252,7 @@ def confirmEmail(token):
     try:
         if "user" in session:                                                               # if temporary user session is detected, add the user to the db.
             email = s.loads(token, salt='email-confirmed', max_age=TokenTimer)              # TokenTimer represents the time in seconds.
-            addUser(session["user"], session["email"], random.randint(50,200))
+            addUser(session["user"], session["email"])
             flash("Account has been successfully created for {}!".format(session["user"]), "info")
             session.pop("user", None)                                                       # then delete the temporary user session info.
             session.pop("email", None)

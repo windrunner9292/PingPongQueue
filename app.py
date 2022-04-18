@@ -6,18 +6,11 @@ import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 import random
 
-""" # LOCAL configs
+# LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
 
-path = os.path.join(os.path.dirname(__file__), 'players.txt')
-with open(path) as f:
-    user_info = [content.split(",") for content in f.readlines()]
-
-path = os.path.join(os.path.dirname(__file__), 'players_ranked.txt')
-with open(path) as f:
-    ranked_user_info = [content.split(",") for content in f.readlines()]
 
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
@@ -32,23 +25,23 @@ app.config['MAIL_USERNAME'] = confidential_info[0]
 app.config['MAIL_PASSWORD'] = confidential_info[1]
 app.config['SECRET_KEY'] = confidential_info[2]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300 """
-
-# PROD configs
-app = Flask(__name__)
-app.permanent_session_lifetime = timedelta(days=5)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
-app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
-app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
-#app.config['MAIL_PORT'] = 465
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
-app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
-app.config['SECRET_KEY'] = os.environ['SECRETKEY']
-s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 TokenTimer = 300
+
+# # PROD configs
+# app = Flask(__name__)
+# app.permanent_session_lifetime = timedelta(days=5)
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
+# app.config['SQLALCHEMY_TRACN_MODIFICATIONS'] = False
+# app.config['MAIL_SERVER'] = "smtp.mail.yahoo.com"
+# #app.config['MAIL_PORT'] = 465
+# app.config['MAIL_PORT'] = 587
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = False
+# app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
+# app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
+# app.config['SECRET_KEY'] = os.environ['SECRETKEY']
+# s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+# TokenTimer = 300
 
 db = SQLAlchemy(app)
 mail = Mail(app)

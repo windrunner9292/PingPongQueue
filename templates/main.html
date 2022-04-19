@@ -15,22 +15,6 @@
   {% endwith %}
 <br/>
 
-<!---
-{% if isJoiningLeague == 0 %}
-<div class="center-content">
-  <form action="{{ url_for('main') }}" method="post">
-  <input type="submit" name="action" value="Join the League" />
-  </form>
-</div>
-{% elif isJoiningLeague == 1 %}
-<div class="center-content">
-  <form action="{{ url_for('main') }}" method="post">
-  <input type="submit" name="action" value="Leave the League" />
-  </form>
-</div>
-{% endif %}
--->
-
 <br/>
   {% if currentQueue|length == 0 %}
     <div class="sub-headers">

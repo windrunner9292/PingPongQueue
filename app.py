@@ -95,7 +95,12 @@ def getCurrentQueue():
 
 def validateRankedMatch(firstUser, secondUser):
     # checking the valid ranked match
-    rank_diff = abs(Users.query.filter_by(username=firstUser).first().rank - Users.query.filter_by(username=secondUser).first().rank)
+
+    firstUserRank = Users.query.filter_by(username=firstUser).first().rank
+    secondUserRank = Users.query.filter_by(username=secondUser).first().rank
+    if (firstUserRank == None or secondUserRank == None):                  # making sure the rank is not NULL.
+        return False
+    rank_diff = abs(firstUserRank - secondUserRank)                         # used for the rank diff restriction
     return (Users.query.filter_by(username=firstUser).first().isParticipatingLeague == 1 and 
             Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1)
 
@@ -214,27 +219,31 @@ def home():
 
 @app.route("/profile", methods = ['GET','POST'])
 def profile():
-    # grabs the statistic info
-
     if "user" in session:
         username = session["user"]
         isUserParticipatingLeague = getCurrentUserParticipationStatus(username)
-        if isUserParticipatingLeague == 1:
-            streakFlag = Users.query.filter_by(username=username).first().lastResult
-            streak = Users.query.filter_by(username=username).first().streak
-            wins = Users.query.filter_by(username=username).first().wins
-            losses = Users.query.filter_by(username=username).first().losses
-            totalGames = wins + losses
-            winRate = round(wins/totalGames*100, 2)
-            return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague,
-                                                streakFlag=streakFlag,
-                                                streak=streak,
-                                                wins=wins,
-                                                losses=losses,
-                                                totalGames=totalGames,
-                                                winRate=winRate)
-        else:
-            return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague)
+        if request.method == "GET":                                                         # grabs the statistic info and displays it
+            if isUserParticipatingLeague == 1:
+                streakFlag = Users.query.filter_by(username=username).first().lastResult
+                streak = Users.query.filter_by(username=username).first().streak
+                wins = Users.query.filter_by(username=username).first().wins
+                losses = Users.query.filter_by(username=username).first().losses
+                winRate = round(wins/(wins+losses)*100, 2)
+                return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague,
+                                                    streakFlag=streakFlag,
+                                                    streak=streak,
+                                                    wins=wins,
+                                                    losses=losses,
+                                                    winRate=winRate)
+            else:
+                return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague)
+        elif request.method == "POST":
+            if request.form['action'] == 'Join the League':                        
+                updateLeagueParticipation(username, 1)
+                return redirect(url_for("profile"))
+            elif request.form['action'] == 'Leave the League':                                         
+                updateLeagueParticipation(username, 0)
+                return redirect(url_for("profile"))
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -424,29 +433,7 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
-            elif request.form['action'] == 'Join the League':                                          # button for deleting the n'th queue.
-                #firstPlayerInQueue = request.form["firstPlayerInQueue"]
-                #secondPlayerInQueue = request.form["secondPlayerInQueue"]
-                #queueID = request.form["queueID"]
-                updateLeagueParticipation(user, 1)
-                currentQueue = getCurrentQueue()
-                return redirect(url_for("main", 
-                                        currentUsers=currentUsers,
-                                        currentQueue=currentQueue,
-                                        currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
-            elif request.form['action'] == 'Leave the League':                                          # button for deleting the n'th queue.
-                #firstPlayerInQueue = request.form["firstPlayerInQueue"]
-                #secondPlayerInQueue = request.form["secondPlayerInQueue"]
-                #queueID = request.form["queueID"]
-                updateLeagueParticipation(user, 0)
-                currentQueue = getCurrentQueue()
-                return redirect(url_for("main", 
-                                        currentUsers=currentUsers,
-                                        currentQueue=currentQueue,
-                                        currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))        
+                                        isJoiningLeague=isJoiningLeague))       
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:

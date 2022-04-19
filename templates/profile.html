@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Profile Page{% endblock %}
+
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <br/>
+      {% for msg in messages %}
+        <p class="sub-headers">{{msg}}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <p><span style='font-weight: bold;'>Username: </span> {{ session["user"] }}</p>
+  <p><span style='font-weight: bold;'>Email: </span> {{ session["email"] }}</p>
+
+  {% if isUserParticipatingLeague == 1 %}
+    <p><span style='font-weight: bold;'>Game Summary: </span> {{ wins }}W | {{ losses }}L | {{ winRate }}%</p>
+
+    {% if streakFlag == 1 %}
+      {% if streak == 1 %}
+        <p>You are on winning streak with {{ streak }} win!</p>
+      {% else %}
+        <p>You are on winning streak with {{ streak }} wins!</p>
+      {% endif %}
+      
+    {% elif streakFlag == 0 %}
+      {% if streak == 1 %}
+        <p>You are on losing streak with {{ streak }} loss!</p>
+      {% else %}
+        <p>You are on losing streak with {{ streak }} losses!</p>
+      {% endif %}
+    {% endif %}
+
+  {% else %}
+    <p>Sorry, Game summary is not available for non-ranked user yet.</p>
+  {% endif %}
+
+{% endblock %}

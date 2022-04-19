@@ -4,9 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
-import random
 
-""" # LOCAL configs
+# LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
@@ -32,9 +31,9 @@ app.config['MAIL_USERNAME'] = confidential_info[0]
 app.config['MAIL_PASSWORD'] = confidential_info[1]
 app.config['SECRET_KEY'] = confidential_info[2]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300 """
+TokenTimer = 300
 
-# PROD configs
+""" # PROD configs
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
@@ -48,7 +47,7 @@ app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
 app.config['SECRET_KEY'] = os.environ['SECRETKEY']
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300
+TokenTimer = 300 """
 
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -60,6 +59,10 @@ class Users(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     isParticipatingLeague = db.Column(db.Integer)
     rank = db.Column(db.Integer, unique=True)
+    lastResult = db.Column(db.Integer)
+    streak = db.Column(db.Integer)
+    wins = db.Column(db.Integer)
+    losses = db.Column(db.Integer)
 
     def __repr__(self):
         return f"User('{self.username}, {self.email}, {self.isParticipatingLeague}, {self.rank}')"
@@ -148,11 +151,27 @@ def updateLeagueRanking(username, rank):
     Users.query.filter_by(username=username).first().rank = rank
     db.session.commit()
 
+def recordStatistics(username, result):
+    if Users.query.filter_by(username=username).first().lastResult == None or Users.query.filter_by(username=username).first().lastResult != result:
+        Users.query.filter_by(username=username).first().lastResult = result
+        Users.query.filter_by(username=username).first().streak = 1
+
+    elif Users.query.filter_by(username=username).first().lastResult == result:
+        Users.query.filter_by(username=username).first().streak += 1
+
+    if result == 1:
+        Users.query.filter_by(username=username).first().wins += 1
+    else:
+         Users.query.filter_by(username=username).first().losses += 1
+
 def addUser(username, email):
     # adds the user to the Users db; rank is NULL by default.
     user = Users(username=username,
                  email=email,
-                 isParticipatingLeague=0)
+                 isParticipatingLeague=0,
+                 streak = 0,
+                 wins = 0,
+                 losses = 0)
     db.session.add(user)
     db.session.commit()
 
@@ -192,6 +211,34 @@ def sendNotificationEmail(iteration):
 def home():
     # main landing page; renders the main page if logged in, login page otherwise.
     return render_template("index.html")
+
+@app.route("/profile", methods = ['GET','POST'])
+def profile():
+    # grabs the statistic info
+
+    if "user" in session:
+        username = session["user"]
+        isUserParticipatingLeague = getCurrentUserParticipationStatus(username)
+        if isUserParticipatingLeague == 1:
+            streakFlag = Users.query.filter_by(username=username).first().lastResult
+            streak = Users.query.filter_by(username=username).first().streak
+            wins = Users.query.filter_by(username=username).first().wins
+            losses = Users.query.filter_by(username=username).first().losses
+            totalGames = wins + losses
+            winRate = round(wins/totalGames*100, 2)
+            return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague,
+                                                streakFlag=streakFlag,
+                                                streak=streak,
+                                                wins=wins,
+                                                losses=losses,
+                                                totalGames=totalGames,
+                                                winRate=winRate)
+        else:
+            return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague)
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("home"))
+
 
 @app.route('/login', methods = ['GET','POST'])
 def login():
@@ -325,7 +372,7 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         isJoiningLeague=isJoiningLeague))
-            if request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
+            elif request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 queueID = request.form["queueID"]
@@ -351,6 +398,12 @@ def main():
                                             isJoiningLeague=isJoiningLeague))
                     else:
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
+                        if firstWins:
+                            recordStatistics(firstCurrentPlayer, 1)
+                            recordStatistics(secondCurrentPlayer, 0)
+                        else:
+                            recordStatistics(firstCurrentPlayer, 0)
+                            recordStatistics(secondCurrentPlayer, 1)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                 currentQueue = getCurrentQueue()
                 if(not dontSendEmailChecked and currentQueueSize != 1):
@@ -361,7 +414,7 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         isJoiningLeague=isJoiningLeague))
-            if request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
+            elif request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
                 queueID = request.form["queueID"]
@@ -372,7 +425,7 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         isJoiningLeague=isJoiningLeague))
-            if request.form['action'] == 'Join the League':                                          # button for deleting the n'th queue.
+            elif request.form['action'] == 'Join the League':                                          # button for deleting the n'th queue.
                 #firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 #secondPlayerInQueue = request.form["secondPlayerInQueue"]
                 #queueID = request.form["queueID"]
@@ -383,7 +436,7 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         isJoiningLeague=isJoiningLeague))
-            if request.form['action'] == 'Leave the League':                                          # button for deleting the n'th queue.
+            elif request.form['action'] == 'Leave the League':                                          # button for deleting the n'th queue.
                 #firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 #secondPlayerInQueue = request.form["secondPlayerInQueue"]
                 #queueID = request.form["queueID"]
@@ -418,3 +471,4 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 7000))
     app.run(debug=True, port = port)
     #app.run(debug=True, port = 8000)
+    #print("test")

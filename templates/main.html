@@ -3,7 +3,6 @@
 {% block title %}Main Dashboard{% endblock %}
 
 {% block content %}
-  <img src="../static/img/qrcode.PNG" alt="qrcode">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <br/>
@@ -130,14 +129,14 @@
         </select>
       </div>
       <input type="submit" name="action" value="Submit"/>
-      <!---
+      
       <div class="inline-display">
         <div class="inline-display">
           <input type="checkbox"name="rankedMatch">
           <label>Ranked Match</label><br>
         </div>
       </div>
-      -->
+      
     </form>
   </div>
 

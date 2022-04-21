@@ -173,6 +173,7 @@ def recordRankedStatistics(username, result):
         Users.query.filter_by(username=username).first().wins_ranked += 1
     else:
          Users.query.filter_by(username=username).first().losses_ranked += 1
+    db.session.commit()
 
 def recordNormalStatistics(username, result):
     if Users.query.filter_by(username=username).first().lastResult_normal == None or Users.query.filter_by(username=username).first().lastResult_normal != result:
@@ -186,6 +187,7 @@ def recordNormalStatistics(username, result):
         Users.query.filter_by(username=username).first().wins_normal += 1
     else:
          Users.query.filter_by(username=username).first().losses_normal += 1
+    db.session.commit()
 
 def addUser(username, email):
     # adds the user to the Users db; rank is NULL by default.

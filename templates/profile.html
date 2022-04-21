@@ -47,7 +47,7 @@
   {% endif %}
 {% endif %}
 
-<p>------------------------------------------------------</p>
+<p>--------------------------------------</p>
 
 {% if isUserParticipatingLeague == 1 %}
   <p><span style='font-weight: bold;'>Ranked Game Summary: </span> {{ wins_ranked }}W | {{ losses_ranked }}L | {{ winRate_ranked }}%</p>
@@ -65,9 +65,9 @@
       <p>You are on the losing streak with {{ streak_ranked }} losses!</p>
     {% endif %}
 {% endif %}
-<p>------------------------------------------------------</p>
+  <p>--------------------------------------</p>
 {% else %}
   <p>Ranked stats not available.</p>
-  <p>------------------------------------------------------</p>
+  <p>--------------------------------------</p>
 {% endif %}
 {% endblock %}

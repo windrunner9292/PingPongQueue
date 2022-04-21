@@ -5,7 +5,7 @@ from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
-# LOCAL configs
+""" # LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
@@ -31,9 +31,9 @@ app.config['MAIL_USERNAME'] = confidential_info[0]
 app.config['MAIL_PASSWORD'] = confidential_info[1]
 app.config['SECRET_KEY'] = confidential_info[2]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300
+TokenTimer = 300 """
 
-""" # PROD configs
+# PROD configs
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
@@ -47,7 +47,7 @@ app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
 app.config['SECRET_KEY'] = os.environ['SECRETKEY']
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300 """
+TokenTimer = 300
 
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -59,10 +59,14 @@ class Users(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     isParticipatingLeague = db.Column(db.Integer)
     rank = db.Column(db.Integer, unique=True)
-    lastResult = db.Column(db.Integer)
-    streak = db.Column(db.Integer)
-    wins = db.Column(db.Integer)
-    losses = db.Column(db.Integer)
+    lastResult_ranked = db.Column(db.Integer)
+    streak_ranked = db.Column(db.Integer)
+    wins_ranked = db.Column(db.Integer)
+    losses_ranked = db.Column(db.Integer)
+    lastResult_normal = db.Column(db.Integer)
+    streak_normal = db.Column(db.Integer)
+    wins_normal = db.Column(db.Integer)
+    losses_normal = db.Column(db.Integer)
 
     def __repr__(self):
         return f"User('{self.username}, {self.email}, {self.isParticipatingLeague}, {self.rank}')"
@@ -80,10 +84,11 @@ class Queue(db.Model):
 def isExistingUser(username, email):
     # used for the user entry check in the db
     existingUser = Users.query.filter_by(username=username).first()
-    existingEmail = Users.query.filter_by(email=email).first()
-    if (existingUser or existingEmail):
-        return True
-    return False
+    if not existingUser:
+        return False
+    if existingUser.email != email:
+        return False
+    return True
 
 def getAllUsers():
     # returns the current users in the table
@@ -156,27 +161,43 @@ def updateLeagueRanking(username, rank):
     Users.query.filter_by(username=username).first().rank = rank
     db.session.commit()
 
-def recordStatistics(username, result):
-    if Users.query.filter_by(username=username).first().lastResult == None or Users.query.filter_by(username=username).first().lastResult != result:
-        Users.query.filter_by(username=username).first().lastResult = result
-        Users.query.filter_by(username=username).first().streak = 1
+def recordRankedStatistics(username, result):
+    if Users.query.filter_by(username=username).first().lastResult_ranked == None or Users.query.filter_by(username=username).first().lastResult_ranked != result:
+        Users.query.filter_by(username=username).first().lastResult_ranked = result
+        Users.query.filter_by(username=username).first().streak_ranked = 1
 
-    elif Users.query.filter_by(username=username).first().lastResult == result:
-        Users.query.filter_by(username=username).first().streak += 1
+    elif Users.query.filter_by(username=username).first().lastResult_ranked == result:
+        Users.query.filter_by(username=username).first().streak_ranked += 1
 
     if result == 1:
-        Users.query.filter_by(username=username).first().wins += 1
+        Users.query.filter_by(username=username).first().wins_ranked += 1
     else:
-         Users.query.filter_by(username=username).first().losses += 1
+         Users.query.filter_by(username=username).first().losses_ranked += 1
+
+def recordNormalStatistics(username, result):
+    if Users.query.filter_by(username=username).first().lastResult_normal == None or Users.query.filter_by(username=username).first().lastResult_normal != result:
+        Users.query.filter_by(username=username).first().lastResult_normal = result
+        Users.query.filter_by(username=username).first().streak_normal = 1
+
+    elif Users.query.filter_by(username=username).first().lastResult_normal == result:
+        Users.query.filter_by(username=username).first().streak_normal += 1
+
+    if result == 1:
+        Users.query.filter_by(username=username).first().wins_normal += 1
+    else:
+         Users.query.filter_by(username=username).first().losses_normal += 1
 
 def addUser(username, email):
     # adds the user to the Users db; rank is NULL by default.
     user = Users(username=username,
                  email=email,
                  isParticipatingLeague=0,
-                 streak = 0,
-                 wins = 0,
-                 losses = 0)
+                 streak_ranked = 0,
+                 wins_ranked = 0,
+                 losses_ranked = 0,
+                 streak_normal = 0,
+                 wins_normal = 0,
+                 losses_normal = 0)
     db.session.add(user)
     db.session.commit()
 
@@ -223,20 +244,33 @@ def profile():
         username = session["user"]
         isUserParticipatingLeague = getCurrentUserParticipationStatus(username)
         if request.method == "GET":                                                         # grabs the statistic info and displays it
-            if isUserParticipatingLeague == 1:
-                streakFlag = Users.query.filter_by(username=username).first().lastResult
-                streak = Users.query.filter_by(username=username).first().streak
-                wins = Users.query.filter_by(username=username).first().wins
-                losses = Users.query.filter_by(username=username).first().losses
-                winRate = round(wins/(wins+losses)*100, 2)
+                streakFlag_normal = Users.query.filter_by(username=username).first().lastResult_normal
+                streak_normal = Users.query.filter_by(username=username).first().streak_normal
+                wins_normal = Users.query.filter_by(username=username).first().wins_normal
+                losses_normal = Users.query.filter_by(username=username).first().losses_normal
+                totalGames_normal = wins_normal + losses_normal
+                winRate_normal = round(wins_normal/(totalGames_normal)*100, 2) if totalGames_normal != 0 else 0
+                
+
+                streakFlag_ranked = Users.query.filter_by(username=username).first().lastResult_ranked
+                streak_ranked = Users.query.filter_by(username=username).first().streak_ranked
+                wins_ranked = Users.query.filter_by(username=username).first().wins_ranked
+                losses_ranked = Users.query.filter_by(username=username).first().losses_ranked
+                totalGames_ranked = wins_ranked + losses_ranked
+                winRate_ranked = round(wins_ranked/(totalGames_ranked)*100, 2) if totalGames_ranked != 0 else 0
+                
+
                 return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague,
-                                                    streakFlag=streakFlag,
-                                                    streak=streak,
-                                                    wins=wins,
-                                                    losses=losses,
-                                                    winRate=winRate)
-            else:
-                return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague)
+                                                    streakFlag_normal=streakFlag_normal,
+                                                    streak_normal=streak_normal,
+                                                    wins_normal=wins_normal,
+                                                    losses_normal=losses_normal,
+                                                    winRate_normal=winRate_normal,
+                                                    streakFlag_ranked=streakFlag_ranked,
+                                                    streak_ranked=streak_ranked,
+                                                    wins_ranked=wins_ranked,
+                                                    losses_ranked=losses_ranked,
+                                                    winRate_ranked=winRate_ranked)
         elif request.method == "POST":
             if request.form['action'] == 'Join the League':                        
                 updateLeagueParticipation(username, 1)
@@ -257,7 +291,7 @@ def login():
         username = request.form["username"]
         email = request.form["email"]
         if (not isExistingUser(username, email)):                   # when the user doesn't exist
-            flash("The username does not exist. Please sign up.")
+            flash("The username/email pair is not found.")
             return render_template("index.html") 
         else:                                                       # when the user does exist
             session.permanent = True
@@ -390,29 +424,37 @@ def main():
                 secondWins = "secondWins" in request.form
                 currentQueue = getCurrentQueue()
                 currentQueueSize = len(currentQueue)
-                if (currentQueue[0][3]==1):                                                 # if the match is ranked:
-                    if (not firstWins and not secondWins):
-                        flash("Winner must be chosen!",'error')
-                        return redirect(url_for("main",
-                                            currentUsers=currentUsers,
-                                            currentQueue=currentQueue,
-                                            currentRankUsers=currentRankUsers,
-                                            isJoiningLeague=isJoiningLeague))
-                    elif (firstWins and secondWins):
-                        flash("There can only be one winner!",'error')
-                        return redirect(url_for("main",
-                                            currentUsers=currentUsers,
-                                            currentQueue=currentQueue,
-                                            currentRankUsers=currentRankUsers,
-                                            isJoiningLeague=isJoiningLeague))
-                    else:
+                #if (currentQueue[0][3]==1):                                                 # if the match is ranked:
+                if (not firstWins and not secondWins):
+                    flash("Winner must be chosen!",'error')
+                    return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
+                elif (firstWins and secondWins):
+                    flash("There can only be one winner!",'error')
+                    return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
+                else:
+                    if (currentQueue[0][3]==1):
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
                         if firstWins:
-                            recordStatistics(firstCurrentPlayer, 1)
-                            recordStatistics(secondCurrentPlayer, 0)
+                            recordRankedStatistics(firstCurrentPlayer, 1)
+                            recordRankedStatistics(secondCurrentPlayer, 0)
                         else:
-                            recordStatistics(firstCurrentPlayer, 0)
-                            recordStatistics(secondCurrentPlayer, 1)
+                            recordRankedStatistics(firstCurrentPlayer, 0)
+                            recordRankedStatistics(secondCurrentPlayer, 1)
+                    else:
+                        if firstWins:
+                            recordNormalStatistics(firstCurrentPlayer, 1)
+                            recordNormalStatistics(secondCurrentPlayer, 0)
+                        else:
+                            recordNormalStatistics(firstCurrentPlayer, 0)
+                            recordNormalStatistics(secondCurrentPlayer, 1)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                 currentQueue = getCurrentQueue()
                 if(not dontSendEmailChecked and currentQueueSize != 1):

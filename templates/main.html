@@ -45,7 +45,9 @@
             <input type="submit" class="button2" name="action" value="Game over"/>
             <input type="checkbox" id="secondWins" name="secondWins">
           {% elif currentQueue[0][3] == 0 %}
+            <input type="checkbox" id="firstWins" name="firstWins">
             <input type="submit" class="button2" name="action" value="Game over"/>
+            <input type="checkbox" id="secondWins" name="secondWins">
           {% endif %}
         </div>
         {% elif currentQueue|length > 1 %}
@@ -54,7 +56,9 @@
             <input type="submit" class="button2" name="action" value="Game over"/>
             <input type="checkbox" id="secondWins" name="secondWins">
           {% elif currentQueue[0][3] == 0 %}
+            <input type="checkbox" id="firstWins" name="firstWins">
             <input type="submit" class="button2" name="action" value="Game over"/>
+            <input type="checkbox" id="secondWins" name="secondWins">
           {% endif %}
         <div class="inline-display">
           <input type="checkbox" id="eMail" name="dontSendEmail">
@@ -125,7 +129,7 @@
   </div>
 
   <br/>
-  <p class="sub-headers">Leaderboard - S3 Final</p>
+  <p class="sub-headers">Leaderboard - S4 (ends 6/1/22)</p>
   <div id="players-container">
     <table class="center" style="width:20%">
       <tr>

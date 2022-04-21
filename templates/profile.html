@@ -21,33 +21,53 @@
   </div>
   {% elif isUserParticipatingLeague == 1 %}
   <div>
+    <p><span style='font-weight: bold;'>Warning: You will lose the current ranking if you leave the league.</span></p>
     <form action="{{ url_for('profile') }}" method="post">
     <input type="submit" name="action" value="Leave the League" />
     </form>
   </div>
 {% endif %}
-  <br>
 
-  {% if isUserParticipatingLeague == 1 %}
-    <p><span style='font-weight: bold;'>Game Summary: </span> {{ wins }}W | {{ losses }}L | {{ winRate }}%</p>
+<p>------------------------------------------------------</p>
 
-    {% if streakFlag == 1 %}
-      {% if streak == 1 %}
-        <p>You are on the winning streak with {{ streak }} win!</p>
-      {% else %}
-        <p>You are on the winning streak with {{ streak }} wins!</p>
-      {% endif %}
-      
-    {% elif streakFlag == 0 %}
-      {% if streak == 1 %}
-        <p>You are on the losing streak with {{ streak }} loss!</p>
-      {% else %}
-        <p>You are on the losing streak with {{ streak }} losses!</p>
-      {% endif %}
-    {% endif %}
+<p><span style='font-weight: bold;'>Normal Game Summary: </span> {{ wins_normal }}W | {{ losses_normal }}L | {{ winRate_normal }}%</p>
 
+{% if streakFlag_normal == 1 %}
+  {% if streak_normal == 1 %}
+    <p>You are on the winning streak with {{ streak_normal }} win!</p>
   {% else %}
-    <p>Sorry, Game summary is not available for non-ranked user yet.</p>
+    <p>You are on the winning streak with {{ streak_normal }} wins!</p>
   {% endif %}
+  
+{% elif streakFlag_normal == 0 %}
+  {% if streak == 1 %}
+    <p>You are on the losing streak with {{ streak_normal }} loss!</p>
+  {% else %}
+    <p>You are on the losing streak with {{ streak_normal }} losses!</p>
+  {% endif %}
+{% endif %}
 
+<p>------------------------------------------------------</p>
+
+{% if isUserParticipatingLeague == 1 %}
+  <p><span style='font-weight: bold;'>Ranked Game Summary: </span> {{ wins_ranked }}W | {{ losses_ranked }}L | {{ winRate_ranked }}%</p>
+  {% if streakFlag_ranked == 1 %}
+    {% if streak_ranked == 1 %}
+      <p>You are on the winning streak with {{ streak_ranked }} win!</p>
+    {% else %}
+      <p>You are on the winning streak with {{ streak_ranked }} wins!</p>
+    {% endif %}
+    
+  {% elif streakFlag_ranked == 0 %}
+    {% if streak_ranked == 1 %}
+      <p>You are on the losing streak with {{ streak_ranked }} loss!</p>
+    {% else %}
+      <p>You are on the losing streak with {{ streak_ranked }} losses!</p>
+    {% endif %}
+{% endif %}
+<p>------------------------------------------------------</p>
+{% else %}
+  <p>Ranked stats not available.</p>
+  <p>------------------------------------------------------</p>
+{% endif %}
 {% endblock %}

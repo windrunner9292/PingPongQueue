@@ -2,72 +2,122 @@
 {% block title %}Profile Page{% endblock %}
 
 {% block content %}
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <br/>
-      {% for msg in messages %}
-        <p class="sub-headers">{{msg}}</p>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-  <p><span style='font-weight: bold;'>Username: </span> {{ session["user"] }}</p>
-  <p><span style='font-weight: bold;'>Email: </span> {{ session["email"] }}</p>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<br />
+{% for msg in messages %}
+<p class="sub-headers">{{msg}}</p>
+{% endfor %}
+{% endif %}
+{% endwith %}
+<br>
+<br>
+<div class="container d-flex justify-content-center align-items-center"">
+  <div class=" card border border-dark border-3" style="width: 50em;">
+  <div class="card-body">
+    <div class="user text-center">
+      <div class="profile"> <img src="../static/img/profile-picture.svg" width="50" alt="Person"> </div>
+    </div>
+    <div class="mt-5 text-center">
+      <h4 class="mb-0">{{ session["user"] }}</h4>
+      <span class="text-muted d-block mb-2">{{ session["email"] }}</span>
+      <!-- League Button Logic -->
+      {% if isUserParticipatingLeague == 0 %}
+      <div>
+        <form action="{{ url_for('profile') }}" method="post">
+          <input type="submit" name="action" class="btn btn-primary btn-sm leauge-btn" value="Join the League" />
+        </form>
+      </div>
+      {% elif isUserParticipatingLeague == 1 %}
+      <div>
+        <p><span class="text-warning" style='font-weight: bold;'>Warning: You will lose the current ranking if you
+            leave the league.</span></p>
+        <form action="{{ url_for('profile') }}" method="post">
+          <input type="submit" name="action" class="btn btn-danger btn-sm leauge-btn mx-4" value="Leave the League" />
+        </form>
+      </div>
+      {% endif %}
+      <!-- League Button Logic End -->
 
-{% if isUserParticipatingLeague == 0 %}
-  <div>
-    <form action="{{ url_for('profile') }}" method="post">
-    <input type="submit" name="action" value="Join the League" />
-    </form>
+      <hr class="border-secondary">
+
+      <!-- Normal Game stats -->
+      <section>
+        <h2 class="mt-4">Normal Game Summary</h2>
+        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+          <div class="stats">
+            <h6 class="mb-0">Wins</h6> <span>{{ wins_normal }}</span>
+          </div>
+          <div class="stats">
+            <h6 class="mb-0">Losses</h6> <span>{{ losses_normal }}</span>
+          </div>
+          <div class="stats">
+            <h6 class="mb-0">Win Rate</h6> <span>{{
+              winRate_normal }}%</span>
+          </div>
+        </div>
+        {% if streakFlag_normal == 1 %}
+        {% if streak_normal == 1 %}
+        <p class="text-success">You are on the winning streak with {{ streak_normal }} win!</p>
+        {% else %}
+        <p class="text-success">You are on the winning streak with {{ streak_normal }} wins!</p>
+        {% endif %}
+
+        {% elif streakFlag_normal == 0 %}
+        {% if streak == 1 %}
+        <p class="text-danger">You are on the losing streak with {{ streak_normal }} loss!</p>
+        {% else %}
+        <p class="text-danger">You are on the losing streak with {{ streak_normal }} losses!</p>
+        {% endif %}
+        {% endif %}
+      </section>
+
+
+      <!-- Ranked Game stats -->
+      <section id="rankedGameSection" hidden>
+        <hr class="border-secondary">
+        <h2 class="mt-4">Ranked Game Summary</h2>
+        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+          <div class="stats">
+            <h6 class="mb-0">Wins</h6> <span>{{wins_ranked}}</span>
+          </div>
+          <div class="stats">
+            <h6 class="mb-0">Losses</h6> <span>{{ losses_ranked }}</span>
+          </div>
+          <div class="stats">
+            <h6 class="mb-0">Win Rate</h6> <span>{{
+              winRate_ranked }}%</span>
+          </div>
+        </div>
+        {% if streakFlag_ranked == 1 %}
+        {% if streak_ranked == 1 %}
+        <p class="text-success">You are on the winning streak with {{ streak_ranked }} win!</p>
+        {% else %}
+        <p class="text-success">You are on the winning streak with {{ streak_ranked }} wins!</p>
+        {% endif %}
+
+        {% elif streakFlag_ranked == 0 %}
+        {% if streak_ranked == 1 %}
+        <p class="text-danger">You are on the losing streak with {{ streak_ranked }} loss!</p>
+        {% else %}
+        <p class="text-danger">You are on the losing streak with {{ streak_ranked }} losses!</p>
+        {% endif %}
+        {% endif %}
+        <hr class="border-secondary">
+      </section>
+
+    </div>
+
+
+
   </div>
-  {% elif isUserParticipatingLeague == 1 %}
-  <div>
-    <p><span style='font-weight: bold;'>Warning: You will lose the current ranking if you leave the league.</span></p>
-    <form action="{{ url_for('profile') }}" method="post">
-    <input type="submit" name="action" value="Leave the League" />
-    </form>
-  </div>
-{% endif %}
+</div>
+<script>
+  const userParticipatingLeague = {{ isUserParticipatingLeague }};
+  if (userParticipatingLeague == 1) {
+    document.querySelector("#rankedGameSection").removeAttribute("hidden");
+  }
 
-<p>--------------------------------------</p>
 
-<p><span style='font-weight: bold;'>Normal Game Summary: </span> {{ wins_normal }}W | {{ losses_normal }}L | {{ winRate_normal }}%</p>
-
-{% if streakFlag_normal == 1 %}
-  {% if streak_normal == 1 %}
-    <p>You are on the winning streak with {{ streak_normal }} win!</p>
-  {% else %}
-    <p>You are on the winning streak with {{ streak_normal }} wins!</p>
-  {% endif %}
-  
-{% elif streakFlag_normal == 0 %}
-  {% if streak == 1 %}
-    <p>You are on the losing streak with {{ streak_normal }} loss!</p>
-  {% else %}
-    <p>You are on the losing streak with {{ streak_normal }} losses!</p>
-  {% endif %}
-{% endif %}
-
-<p>--------------------------------------</p>
-
-{% if isUserParticipatingLeague == 1 %}
-  <p><span style='font-weight: bold;'>Ranked Game Summary: </span> {{ wins_ranked }}W | {{ losses_ranked }}L | {{ winRate_ranked }}%</p>
-  {% if streakFlag_ranked == 1 %}
-    {% if streak_ranked == 1 %}
-      <p>You are on the winning streak with {{ streak_ranked }} win!</p>
-    {% else %}
-      <p>You are on the winning streak with {{ streak_ranked }} wins!</p>
-    {% endif %}
-    
-  {% elif streakFlag_ranked == 0 %}
-    {% if streak_ranked == 1 %}
-      <p>You are on the losing streak with {{ streak_ranked }} loss!</p>
-    {% else %}
-      <p>You are on the losing streak with {{ streak_ranked }} losses!</p>
-    {% endif %}
-{% endif %}
-  <p>--------------------------------------</p>
-{% else %}
-  <p>Ranked stats not available.</p>
-  <p>--------------------------------------</p>
-{% endif %}
+</script>
 {% endblock %}

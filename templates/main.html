@@ -38,33 +38,17 @@
         <input type="hidden" value={{ currentQueue[0][0] }} name="firstCurrentPlayer">
         <input type="hidden" value={{ currentQueue[0][1] }} name="secondCurrentPlayer">
         <input type="hidden" value={{ currentQueue[0][2] }} name="queueID">
-        {% if currentQueue|length == 1 %}
+        <input type="checkbox" id="firstWins" name="firstWins">
+        <input type="submit" class="button2" name="action" value="Game over"/>
+        <input type="checkbox" id="secondWins" name="secondWins">
         <div class="inline-display">
-          {% if currentQueue[0][3] == 1 %}  
-            <input type="checkbox" id="firstWins" name="firstWins">
-            <input type="submit" class="button2" name="action" value="Game over"/>
-            <input type="checkbox" id="secondWins" name="secondWins">
-          {% elif currentQueue[0][3] == 0 %}
-            <input type="checkbox" id="firstWins" name="firstWins">
-            <input type="submit" class="button2" name="action" value="Game over"/>
-            <input type="checkbox" id="secondWins" name="secondWins">
-          {% endif %}
+          <!-- {% if currentQueue|length != 1 %}
+            <input type="checkbox" id="eMail" name="dontSendEmail">
+            <label for="eMail">Don't email players</label><br>
+          {% endif %} -->
+          <input type="checkbox" id="eMail" name="dontRecordStats">
+          <label for="eMail">Don't record this game</label><br>
         </div>
-        {% elif currentQueue|length > 1 %}
-          {% if currentQueue[0][3] == 1 %}  
-            <input type="checkbox" id="firstWins" name="firstWins">
-            <input type="submit" class="button2" name="action" value="Game over"/>
-            <input type="checkbox" id="secondWins" name="secondWins">
-          {% elif currentQueue[0][3] == 0 %}
-            <input type="checkbox" id="firstWins" name="firstWins">
-            <input type="submit" class="button2" name="action" value="Game over"/>
-            <input type="checkbox" id="secondWins" name="secondWins">
-          {% endif %}
-        <div class="inline-display">
-          <input type="checkbox" id="eMail" name="dontSendEmail">
-          <label for="eMail">Don't email players</label><br>
-        </div>
-        {% endif %}
       </form>
     </div>
     <br/>

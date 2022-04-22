@@ -203,6 +203,32 @@ def addUser(username, email):
     db.session.add(user)
     db.session.commit()
 
+def resultCorrection(firstUser, secondUser, isRanked, firstUserStreak=1, secondUserStreak=1):
+    actualWonPlayer = Users.query.filter_by(username=firstUser).first()
+    actualLostPlayer = Users.query.filter_by(username=secondUser).first()
+    if isRanked:
+        actualWonPlayer.wins_ranked += 1
+        actualWonPlayer.losses_ranked -= 1
+        actualWonPlayer.lastResult_ranked = 1
+        actualWonPlayer.streak_ranked = firstUserStreak
+        
+        actualLostPlayer.wins_ranked -= 1
+        actualLostPlayer.losses_ranked += 1
+        actualLostPlayer.lastResult_ranked = 0
+        actualLostPlayer.streak_ranked = secondUserStreak
+
+    else:
+        actualWonPlayer.wins_normal += 1
+        actualWonPlayer.losses_normal -= 1
+        actualWonPlayer.lastResult_normal = 1
+        actualWonPlayer.streak_normal = firstUserStreak
+        
+        actualLostPlayer.wins_normal -= 1
+        actualLostPlayer.losses_normal += 1
+        actualLostPlayer.lastResult_normal = 0
+        actualLostPlayer.streak_normal = secondUserStreak
+    db.session.commit()
+
 def addQueue(firstUser, secondUser, isRankedMatch):
     # adds the row to Queue db
     queue = Queue(firstUser=firstUser,
@@ -239,51 +265,6 @@ def sendNotificationEmail(iteration):
 def home():
     # main landing page; renders the main page if logged in, login page otherwise.
     return render_template("index.html")
-
-@app.route("/profile", methods = ['GET','POST'])
-def profile():
-    if "user" in session:
-        username = session["user"]
-        isUserParticipatingLeague = getCurrentUserParticipationStatus(username)
-        if request.method == "GET":                                                         # grabs the statistic info and displays it
-                streakFlag_normal = Users.query.filter_by(username=username).first().lastResult_normal
-                streak_normal = Users.query.filter_by(username=username).first().streak_normal
-                wins_normal = Users.query.filter_by(username=username).first().wins_normal
-                losses_normal = Users.query.filter_by(username=username).first().losses_normal
-                totalGames_normal = wins_normal + losses_normal
-                winRate_normal = round(wins_normal/(totalGames_normal)*100, 2) if totalGames_normal != 0 else 0
-                
-
-                streakFlag_ranked = Users.query.filter_by(username=username).first().lastResult_ranked
-                streak_ranked = Users.query.filter_by(username=username).first().streak_ranked
-                wins_ranked = Users.query.filter_by(username=username).first().wins_ranked
-                losses_ranked = Users.query.filter_by(username=username).first().losses_ranked
-                totalGames_ranked = wins_ranked + losses_ranked
-                winRate_ranked = round(wins_ranked/(totalGames_ranked)*100, 2) if totalGames_ranked != 0 else 0
-                
-
-                return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague,
-                                                    streakFlag_normal=streakFlag_normal,
-                                                    streak_normal=streak_normal,
-                                                    wins_normal=wins_normal,
-                                                    losses_normal=losses_normal,
-                                                    winRate_normal=winRate_normal,
-                                                    streakFlag_ranked=streakFlag_ranked,
-                                                    streak_ranked=streak_ranked,
-                                                    wins_ranked=wins_ranked,
-                                                    losses_ranked=losses_ranked,
-                                                    winRate_ranked=winRate_ranked)
-        elif request.method == "POST":
-            if request.form['action'] == 'Join the League':                        
-                updateLeagueParticipation(username, 1)
-                return redirect(url_for("profile"))
-            elif request.form['action'] == 'Leave the League':                                         
-                updateLeagueParticipation(username, 0)
-                return redirect(url_for("profile"))
-    else:
-        flash("You are not logged in!")
-        return redirect(url_for("home"))
-
 
 @app.route('/login', methods = ['GET','POST'])
 def login():
@@ -337,6 +318,48 @@ def signup():
             return render_template("main.html")
     else:
         return render_template("signup.html")                               # when landing on this page using GET request
+
+@app.route("/profile", methods = ['GET','POST'])
+def profile():
+    if "user" in session:
+        username = session["user"]
+        isUserParticipatingLeague = getCurrentUserParticipationStatus(username)
+        if request.method == "GET":                                                         # grabs the statistic info and displays it
+                streakFlag_normal = Users.query.filter_by(username=username).first().lastResult_normal
+                streak_normal = Users.query.filter_by(username=username).first().streak_normal
+                wins_normal = Users.query.filter_by(username=username).first().wins_normal
+                losses_normal = Users.query.filter_by(username=username).first().losses_normal
+                totalGames_normal = wins_normal + losses_normal
+                winRate_normal = round(wins_normal/(totalGames_normal)*100, 2) if totalGames_normal != 0 else 0
+                
+                streakFlag_ranked = Users.query.filter_by(username=username).first().lastResult_ranked
+                streak_ranked = Users.query.filter_by(username=username).first().streak_ranked
+                wins_ranked = Users.query.filter_by(username=username).first().wins_ranked
+                losses_ranked = Users.query.filter_by(username=username).first().losses_ranked
+                totalGames_ranked = wins_ranked + losses_ranked
+                winRate_ranked = round(wins_ranked/(totalGames_ranked)*100, 2) if totalGames_ranked != 0 else 0
+
+                return render_template("profile.html", isUserParticipatingLeague=isUserParticipatingLeague,
+                                                    streakFlag_normal=streakFlag_normal,
+                                                    streak_normal=streak_normal,
+                                                    wins_normal=wins_normal,
+                                                    losses_normal=losses_normal,
+                                                    winRate_normal=winRate_normal,
+                                                    streakFlag_ranked=streakFlag_ranked,
+                                                    streak_ranked=streak_ranked,
+                                                    wins_ranked=wins_ranked,
+                                                    losses_ranked=losses_ranked,
+                                                    winRate_ranked=winRate_ranked)
+        elif request.method == "POST":
+            if request.form['action'] == 'Join the League':                        
+                updateLeagueParticipation(username, 1)
+                return redirect(url_for("profile"))
+            elif request.form['action'] == 'Leave the League':                                         
+                updateLeagueParticipation(username, 0)
+                return redirect(url_for("profile"))
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("home"))
 
 @app.route('/confirm_email/<token>', methods=['GET','POST'])
 def confirmEmail(token):
@@ -422,10 +445,22 @@ def main():
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
                 queueID = request.form["queueID"]
                 dontSendEmailChecked = "dontSendEmail" in request.form
+                dontRecordStatsChecked = "dontRecordStats" in request.form
                 firstWins = "firstWins" in request.form
                 secondWins = "secondWins" in request.form
                 currentQueue = getCurrentQueue()
                 currentQueueSize = len(currentQueue)
+                if dontRecordStatsChecked:
+                    deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
+                    currentQueue = getCurrentQueue()
+                    if(not dontSendEmailChecked and currentQueueSize != 1):
+                        flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                        sendNotificationEmail(0)
+                    return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        isJoiningLeague=isJoiningLeague))
                 #if (currentQueue[0][3]==1):                                                 # if the match is ranked:
                 if (not firstWins and not secondWins):
                     flash("Winner must be chosen!",'error')
@@ -497,8 +532,8 @@ def logout():
     return redirect(url_for("home"))
 
 if __name__ == "__main__":
-    #db.drop_all()
-    #db.create_all()
+    #db.drop_all()        #DO NOT use this except Fred
+    #db.create_all()      #DO NOT use this except Fred
     port = int(os.environ.get('PORT', 7000))
     app.run(debug=True, port = port)
     #app.run(debug=True, port = 8000)

@@ -154,3 +154,44 @@ img {
 .right {
     width: 30%;
 }
+
+
+
+/* Css for the profile page */
+
+.user {
+    /* make image center */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 320px;
+
+    position: relative;
+    
+}
+
+.profile img {
+    height: 80px;
+    width: 80px;
+    margin-top: 2px
+}
+
+.profile {
+    position: absolute;
+    top: -50px;
+    left: 38%;
+    height: 90px;
+    width: 90px;
+    border-radius: 50%
+}
+
+.leauge-btn {
+    border-radius: 15px;
+    padding-left: 20px;
+    padding-right: 20px;
+    height: 35px
+}
+
+.stats span {
+    font-size: 29px
+}

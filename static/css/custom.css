@@ -155,13 +155,6 @@ img {
     width: 30%;
 }
 
-img.emoji {
-    display: inline;
-    height: 1em;
-    width: 1em;
-    margin-bottom: 0.25em;
-}
-
 /* Css for the profile page */
 
 .user {

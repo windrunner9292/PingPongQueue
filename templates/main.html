@@ -124,20 +124,12 @@
       {% if currentRankUsers[i][0] == session["user"] %}
       <tr>
         <td>{{ i+1 }}</td>
-        {% if currentRankUsers[i][2] > 2  %}
-          <td><span style="color:blue; font-weight: bold; font-style:italic; white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/fire.png"></img></span></td>
-        {% else %}
-          <td><span style="color:blue; font-weight: bold; font-style:italic">{{ currentRankUsers[i][0] }}</span></td>
-        {% endif %}
+        <td><span style="color:blue; font-weight: bold; font-style:italic">{{ currentRankUsers[i][0] }}</span></td>
       </tr>
       {% else %}
       <tr>
         <td>{{ i+1 }}</td>
-        {% if currentRankUsers[i][2] > 2  %}
-          <td><span style="white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/fire.png"></img></span></td>
-        {% else %}
-          <td>{{ currentRankUsers[i][0] }}</td>
-        {% endif %}
+        <td>{{ currentRankUsers[i][0] }}</td>
       </tr>
       {% endif %}
     {% endfor %}

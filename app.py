@@ -115,7 +115,7 @@ def getCurrentLeaderBoard():
     rank_users = []
     for user in Users.query.all():
         if user.isParticipatingLeague == 1:
-            rank_users.append((user.username, user.rank))
+            rank_users.append((user.username, user.rank, user.streak_ranked if user.lastResult_ranked == 1 else 0))
     rank_users.sort(key=lambda i:i[1])
     return rank_users
 

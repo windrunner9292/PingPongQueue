@@ -1,5 +1,7 @@
 # PingPongQueue
 
+https://nls-pingpong.herokuapp.com/
+
 This project is made to automate the pingpong queue board for NLS.
 
 How to use:

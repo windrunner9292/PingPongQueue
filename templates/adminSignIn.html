@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Login Page{% endblock %}
+{% block title %}Login Page (Admin){% endblock %}
 
 {% block content %}
   {% with messages = get_flashed_messages() %}
@@ -10,9 +10,10 @@
       {% endfor %}
     {% endif %}
   {% endwith %}
-  <form action="login" method="post">
-    Enter Username : &nbsp;<input type="text" name="username" /><br>
-    Enter Email : &nbsp;<input type="text" name="email" /><br>
+  <h2>Admin signin</h2>
+  <form action="adminLogin" method="post">
+    Username : &nbsp;<input type="text" name="username" /><br>
+    Password : &nbsp;<input type="password" name="password" /><br>
   <input type="submit" value="Log In">
   </form>
 {% endblock %}

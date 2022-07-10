@@ -81,12 +81,32 @@ class Queue(db.Model):
     def __repr__(self):
         return f"User('{self.username}, {self.email}')"
 
+class Admin(db.Model):
+    # admin-controlled table
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(50))
+    isRankedEnabled = db.Column(db.Integer)
+    leaderBoardHeader = db.Column(db.String(50))
+
+    def __repr__(self):
+        return f"User('{self.username}')"
+
 def isExistingUser(username, email):
     # used for the user entry check in the db
     existingUser = Users.query.filter_by(username=username).first()
     if not existingUser:
         return False
     if existingUser.email != email:
+        return False
+    return True
+
+def isExistingAdmin(username, password):
+    # admin entry check
+    existingUser = Admin.query.filter_by(username=username).first()
+    if not existingUser:
+        return False
+    if existingUser.password != password:
         return False
     return True
 
@@ -206,6 +226,20 @@ def addUser(username, email):
     db.session.add(user)
     db.session.commit()
 
+def deleteUser(username):
+    # delete the user from the table
+    Users.query.filter_by(username=username).delete()
+    db.session.commit()
+
+def addAdminUser():
+    # adds the user to the admin db
+    user = Admin(username = 'admin',
+                 password='nlsnow-pingpong',
+                 isRankedEnabled = 0,
+                 leaderBoardHeader = 'Leaderboard - S4 (locked)')
+    db.session.add(user)
+    db.session.commit()
+
 def resultCorrection(firstUser, secondUser, isRanked, firstUserStreak=1, secondUserStreak=1):
     actualWonPlayer = Users.query.filter_by(username=firstUser).first()
     actualLostPlayer = Users.query.filter_by(username=secondUser).first()
@@ -262,6 +296,20 @@ def sendNotificationEmail(iteration):
     msg.body = 'This is from automated email. You guys are up next.'
     mail.send(msg)
 
+def getIsRankedEnabled():
+    return Admin.query.filter_by(username='admin').first().isRankedEnabled
+
+def updateIsRankedEnabled(flag):
+    Admin.query.filter_by(username='admin').first().isRankedEnabled = flag
+    db.session.commit()
+
+def getCurrentLeaderBoardHeader():
+    return Admin.query.filter_by(username='admin').first().leaderBoardHeader
+
+def updateCurrentLeaderBoardHeader(newHeader):
+    Admin.query.filter_by(username='admin').first().leaderBoardHeader = newHeader
+    db.session.commit()
+
 '''Below are the Functions that interact with frontEnd directly'''
 
 @app.route("/")
@@ -286,6 +334,30 @@ def login():
             session.permanent = True
             session["user"] = username
             session["email"] = email
+            flash("Login Successful!")
+            return redirect(url_for("main"))
+
+    if request.method == "GET":                                     # when landing on this page using GET request
+        if "user" in session:                                       # if there is a active session
+            flash("Already logged in!")
+            return render_template("main.html")
+        else:
+            flash("Please login.")
+            return render_template("index.html")
+
+@app.route('/adminLogin', methods = ['GET','POST'])
+def adminLogin():
+    # workflow when 'Log In' is clicked for Admin.
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        if (not isExistingAdmin(username, password)):                   # when the user doesn't exist
+            flash("The username/password pair is not found.")
+            return render_template("adminSignin.html") 
+        else:                                                       # when the user does exist
+            session.permanent = True
+            session["user"] = username
             flash("Login Successful!")
             return redirect(url_for("main"))
 
@@ -367,6 +439,76 @@ def profile():
         flash("You are not logged in!")
         return redirect(url_for("home"))
 
+
+
+@app.route("/admin", methods = ['GET','POST'])
+def admin():
+    if "user" in session:
+        username = session["user"]
+        isRankedEnabled = getIsRankedEnabled()
+        leaderBoardHeader = getCurrentLeaderBoardHeader()
+        if request.method == "GET":
+            if username == 'admin':
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+            else:
+                return redirect(url_for("home"))
+        if request.method == "POST":
+            if request.form['action'] == 'Turn off ranked game mode':
+                updateIsRankedEnabled(0)
+                flash("Ranked game is turned off.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+            elif request.form['action'] == 'Turn on ranked game mode':
+                updateIsRankedEnabled(1)
+                flash("Ranked game is turned on.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+            elif request.form['action'] == 'Submit':
+                if request.form['newHeader'] != '':
+                    updateCurrentLeaderBoardHeader(request.form['newHeader'])
+                flash("Table header is updated.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+            elif request.form['action'] == 'Add':
+                if request.form['username'] != '' and request.form['email'] != '':
+                    username = request.form['username']
+                    email = request.form['email']
+                    if (not isExistingUser(username, email)):
+                        addUser(username, email)
+                        flash("{} is added.".format(username))
+                    else:
+                        flash("Either username or email already exists.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+            elif request.form['action'] == 'Delete':
+                username = request.form['userToDelete']
+                deleteUser(username)
+                flash("{} is deleted.".format(username))
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+            elif request.form['action'] == 'Reset ranked game participations':
+                currentRankUsers = getCurrentLeaderBoard()[::-1]
+                for user in currentRankUsers:
+                    updateLeagueParticipation(user[0],0)
+                flash("Ranked participation is cleared.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader)
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("home"))
+
+@app.route("/adminSignIn", methods = ['GET','POST'])
+def adminSignIn():
+    return render_template("adminSignIn.html")
+
 @app.route('/confirm_email/<token>', methods=['GET','POST'])
 def confirmEmail(token):
     # this function is called when the user clicks on the confirmation email.
@@ -397,12 +539,14 @@ def redirectMainGetRequest():
         currentUsers = getAllUsers()
         currentQueue = getCurrentQueue()
         currentRankUsers = getCurrentLeaderBoard()
-        isJoiningLeague = getCurrentUserParticipationStatus(user)
+        isRankedEnabled = getIsRankedEnabled()
+        leaderBoardHeader = getCurrentLeaderBoardHeader()
         return render_template("main.html", 
                     currentUsers=currentUsers,
                     currentQueue=currentQueue,
                     currentRankUsers=currentRankUsers,
-                    isJoiningLeague=isJoiningLeague)
+                    leaderBoardHeader=leaderBoardHeader,
+                    isRankedEnabled=isRankedEnabled)
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -414,7 +558,8 @@ def main():
         user = session["user"]
         currentUsers = getAllUsers()
         currentRankUsers = getCurrentLeaderBoard()
-        isJoiningLeague = getCurrentUserParticipationStatus(user)
+        isRankedEnabled = getIsRankedEnabled()
+        leaderBoardHeader = getCurrentLeaderBoardHeader()
         if request.method == "POST":
             if request.form['action'] == 'Submit':                                      # button for adding the match to the queue
                 firstPlayer = request.form["firstPlayer"]
@@ -427,7 +572,8 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
                 if firstPlayer == secondPlayer:                                         # when accidentally adding same players
                     flash("You can't play yourself!", "error")
                     currentQueue = getCurrentQueue()
@@ -435,7 +581,8 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
                 if (isRankedMatch):
                     addQueue(firstPlayer, secondPlayer, 1)
                 else:
@@ -445,7 +592,8 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
             elif request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
@@ -466,7 +614,8 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
                 #if (currentQueue[0][3]==1):                                                 # if the match is ranked:
                 if (not firstWins and not secondWins):
                     flash("Winner must be chosen!",'error')
@@ -474,14 +623,16 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
                 elif (firstWins and secondWins):
                     flash("There can only be one winner!",'error')
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
                 else:
                     if (currentQueue[0][3]==1):
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
@@ -507,7 +658,8 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))
             elif request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
@@ -518,7 +670,8 @@ def main():
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
-                                        isJoiningLeague=isJoiningLeague))       
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled))       
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:

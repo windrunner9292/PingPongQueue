@@ -29,9 +29,14 @@
     <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         {% if "user" not in session%}
+        <a class="nav-item nav-link" href="/adminSignIn">Admin</a>
         <a class="nav-item nav-link" href="/">Log In</a>
         {% else%}
-          <a class="nav-item nav-link" href="/profile">Profile</a>
+          {% if session["user"] == "admin" %}
+            <a class="nav-item nav-link" href="/admin">Admin</a>
+          {% else%}
+            <a class="nav-item nav-link" href="/profile">Profile</a>
+          {% endif %}
           <a class="nav-item nav-link" href="/logout">Log Out</a>
         {% endif %}       
       </div>

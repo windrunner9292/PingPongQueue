@@ -457,12 +457,14 @@ def admin():
         if request.method == "POST":
             if request.form['action'] == 'Turn off ranked game mode':
                 updateIsRankedEnabled(0)
+                isRankedEnabled = getIsRankedEnabled()
                 flash("Ranked game is turned off.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader)
             elif request.form['action'] == 'Turn on ranked game mode':
                 updateIsRankedEnabled(1)
+                isRankedEnabled = getIsRankedEnabled()
                 flash("Ranked game is turned on.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,

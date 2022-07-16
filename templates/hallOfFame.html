@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Hall of Fame{% endblock %}
+
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <br/>
+      {% for msg in messages %}
+        <p class="sub-headers">{{msg}}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <br/>
+  <p class="sub-headers">Season Tournament Winners</p>
+  <div id="players-container">
+    <table class="table1" style="width:20%">
+      <tr>
+        <th>Season</th>
+        <th>Winner</th>
+      </tr>
+      <tr>
+        <td>I</td>
+        <td><span style="color:blue; font-weight: bold; font-style:italic">Lee Futter</span></td>
+      </tr>
+      <tr>
+        <td>II</td>
+        <td><span style="color:blue; font-weight: bold; font-style:italic">Gordon Gilberstone</span></td>
+      </tr>
+      <tr>
+        <td>III</td>
+        <td><span style="color:blue; font-weight: bold; font-style:italic">Josh Mueller</span></td>
+      </tr>
+      <tr>
+        <td>IV</td>
+        <td><span style="color:blue; font-weight: bold; font-style:italic">Fred Lee</span></td>
+      </tr>
+    </table>
+  </div>
+
+{% endblock %}

@@ -345,6 +345,17 @@ def login():
             flash("Please login.")
             return render_template("index.html")
 
+@app.route('/hallOfFame', methods = ['GET'])
+def hallOfFame():
+    # workflow when 'Hall of Fame' is clicked.
+
+    if request.method == "GET":                                     # when landing on this page using GET request
+        if "user" in session:                                       # if there is a active session
+            return render_template("hallOfFame.html")
+        else:
+            flash("Please login.")
+            return render_template("index.html")
+
 @app.route('/adminLogin', methods = ['GET','POST'])
 def adminLogin():
     # workflow when 'Log In' is clicked for Admin.

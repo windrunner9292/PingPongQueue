@@ -20,6 +20,12 @@ body {
     border-radius: 25px;
     padding: 10px 10px 10px;
 }
+table.table1 {margin: 0 auto;}
+table.table1 tr {text-align: center;
+                font-weight: bold;
+                }
+table.table1 td {text-align: center;
+                }
 
 table,
 th,

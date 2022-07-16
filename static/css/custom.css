@@ -20,8 +20,7 @@ body {
     border-radius: 25px;
     padding: 10px 10px 10px;
 }
-table.table1 {margin: 0 auto;
-            width: 50%;}
+table.table1 {margin: 0 auto;}
 table.table1 tr {text-align: center;
                 font-weight: bold;
                 }

@@ -5,7 +5,7 @@ from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
-""" # LOCAL configs
+# LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
@@ -31,9 +31,9 @@ app.config['MAIL_USERNAME'] = confidential_info[0]
 app.config['MAIL_PASSWORD'] = confidential_info[1]
 app.config['SECRET_KEY'] = confidential_info[2]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300 """
+TokenTimer = 300
 
-# PROD configs
+""" # PROD configs
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
@@ -47,7 +47,7 @@ app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
 app.config['SECRET_KEY'] = os.environ['SECRETKEY']
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300
+TokenTimer = 300 """
 
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -719,7 +719,7 @@ def logout():
 if __name__ == "__main__":
     #db.drop_all()        #DO NOT use this except Fred
     #db.create_all()      #DO NOT use this except Fred
-    port = int(os.environ.get('PORT', 7000))  #PROD
-    app.run(debug=True, port = port)          #PROD
-    #app.run(debug=True, port = 8000)         #LOCAL
+    """ port = int(os.environ.get('PORT', 7000))  #PROD
+    app.run(debug=True, port = port)          #PROD """
+    app.run(debug=True, port = 8000)         #LOCAL
     #print("test")

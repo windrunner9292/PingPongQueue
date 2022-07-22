@@ -356,6 +356,19 @@ def hallOfFame():
             flash("Please login.")
             return render_template("index.html")
 
+@app.route('/bracket', methods = ['GET'])
+def bracket():
+    # workflow when 'Bracket' is clicked.
+
+    currentRankUsers = getCurrentLeaderBoard()
+    if request.method == "GET":                                     # when landing on this page using GET request
+        if "user" in session:                                       # if there is a active session
+            return render_template("bracket.html",
+                                    currentRankUsers=currentRankUsers)
+        else:
+            flash("Please login.")
+            return render_template("index.html")
+
 @app.route('/adminLogin', methods = ['GET','POST'])
 def adminLogin():
     # workflow when 'Log In' is clicked for Admin.

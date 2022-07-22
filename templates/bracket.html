@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Bracket{% endblock %}
+
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <br/>
+      {% for msg in messages %}
+        <p class="sub-headers">{{msg}}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <br/>
+
+  {% if currentRankUsers|length >= 12 %}
+    <h1>Current Season Bracket</h1>
+    <main id="tournament">
+      <ul class="round round-1">
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+        <li class="game game-spacer-hide">&nbsp;</li>
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top"> {{ currentRankUsers[7][0] }} <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom "> {{ currentRankUsers[8][0] }} <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top "> {{ currentRankUsers[4][0] }} <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom"> {{ currentRankUsers[11][0] }}<span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+        <li class="game game-spacer-hide">&nbsp;</li>
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+        <li class="game game-spacer-hide">&nbsp;</li>
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top"> {{ currentRankUsers[6][0] }} <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom "> {{ currentRankUsers[9][0] }} <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top"> {{ currentRankUsers[5][0] }} <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom "> {{ currentRankUsers[10][0] }} <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+        <li class="game game-spacer-hide">&nbsp;</li>
+        <li class="game game-hide"><span style="color: #e9ecef;">dummy</span><span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+      </ul>
+      <ul class="round round-2">
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom ">TBD <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom ">TBD <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top ">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom">TBD <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top ">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom">TBD <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+      </ul>
+      <ul class="round round-3">
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom ">TBD <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top ">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom">TBD <span></span></li>
+    
+        <li class="spacer">&nbsp;</li>
+      </ul>
+      <ul class="round round-4">
+        <li class="spacer">&nbsp;</li>
+        
+        <li class="game game-top">TBD <span></span></li>
+        <li class="game game-spacer">&nbsp;</li>
+        <li class="game game-bottom ">TBD <span></span></li>
+        
+        <li class="spacer">&nbsp;</li>
+      </ul>   
+      
+      <ul class="round round-5">
+        <li class="spacer">&nbsp;</li>
+        
+          <p>&nbsp;TBH</p>
+        
+        <li class="spacer">&nbsp;</li>
+      </ul>   
+
+    </main>
+
+  {% else %}
+  <p>Bracket requires at least 12 players.</p>
+  
+  {% endif %}
+
+{% endblock %}

@@ -126,8 +126,9 @@ def validateRankedMatch(firstUser, secondUser):
     if (firstUserRank == None or secondUserRank == None):                  # making sure the rank is not NULL.
         return False
     rank_diff = abs(firstUserRank - secondUserRank)                         # used for the rank diff restriction
+    max_rank_diff = 5
     return (Users.query.filter_by(username=firstUser).first().isParticipatingLeague == 1 and 
-            Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1)
+            Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1 and rank_diff < max_rank_diff)
 
 def getCurrentLeaderBoard():
     # getting the list of ranked players.

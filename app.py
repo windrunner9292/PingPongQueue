@@ -53,7 +53,7 @@ TokenTimer = 300
 
 db = SQLAlchemy(app)
 mail = Mail(app)
-PLAYTIME = 20  #in min
+PLAYTIME = 25  #in min
 
 class Users(db.Model):
     # Users table definition

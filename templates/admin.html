@@ -13,30 +13,49 @@
 
   {% if isRankedEnabled == 1 %}
     <form action="admin" method="post">
+      <p>Ranked game mode is turned on.</p>
       <input type="submit" name='action' value="Turn off ranked game mode">
     </form>
   {% else %}
     <form action="admin" method="post">
+      <p>Ranked game mode is turned off.</p>
       <input type="submit" name='action' value="Turn on ranked game mode">
     </form>
   {% endif %}
   <hr>
+
+  {% if challengeRestrictionEnabled == 1 %}
+    <form action="admin" method="post">
+      <p>Restriction is turned on.</p>
+      <input type="submit" name='action' value="Turn off challenge restriction">
+    </form>
+  {% else %}
+    <form action="admin" method="post">
+      <p>Restriction is turned off.</p>
+      <input type="submit" name='action' value="Turn on challenge restriction">
+    </form>
+  {% endif %}
+  <hr>
+
   <form action="admin" method="post">
     Enter the new leaderboard header : &nbsp;<input type="text" name="newHeader" /><br>
   <input type="submit" name='action' value="Submit">
   </form>
   <hr>
+
   <form action="admin" method="post">
     Enter new Username : &nbsp;<input type="text" name="username" /><br>
     Enter new Email : &nbsp;<input type="text" name="email" /><br>
   <input type="submit" name='action' value="Add">
   </form>
   <hr>
+
   <form action="admin" method="post">
     Enter the username to delete : &nbsp;<input type="text" name="userToDelete" /><br>
   <input type="submit" name='action' value="Delete">
   </form>
   <hr>
+
   <form action="admin" method="post">
     <input type="submit" name='action' value="Reset ranked game participations">
   </form>

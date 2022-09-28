@@ -16,6 +16,15 @@
 <br/>
 
 <br/>
+
+<p hidden><span id="remainingTimeValue">{{ remainingTime }}</span></p>
+{% if remainingTime < 85000 %}
+  <p class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
+{% elif remainingTime >= 85000 and currentQueue|length != 0 %}
+  <p class="sub-headers">Current game is over. Please proceed to the next game.</span></p>
+  <p hidden class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
+{% endif %}
+
   {% if currentQueue|length == 0 %}
     <div class="sub-headers">
       <p >There is no current match going on.</p> 
@@ -101,7 +110,6 @@
         </select>
       </div>
       <input type="submit" name="action" value="Submit"/>
-      
       <div class="inline-display">
         <div class="inline-display">
           {% if isRankedEnabled == 1 %}

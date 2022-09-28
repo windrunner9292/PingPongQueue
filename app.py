@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+import datetime
+from datetime import timedelta
 
 """ # LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
@@ -51,6 +53,7 @@ TokenTimer = 300
 
 db = SQLAlchemy(app)
 mail = Mail(app)
+PLAYTIME = 20  #in min
 
 class Users(db.Model):
     # Users table definition
@@ -77,17 +80,19 @@ class Queue(db.Model):
     firstUser = db.Column(db.String(20), unique=False, nullable=False)
     secondUser = db.Column(db.String(50), unique=False, nullable=False)
     isRankedMatch = db.Column(db.Integer)
+    QueueEndTime = db.Column(db.DateTime)
 
     def __repr__(self):
         return f"User('{self.username}, {self.email}')"
 
 class Admin(db.Model):
-    # admin-controlled table
+    # admin-controlled table--
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(50))
     isRankedEnabled = db.Column(db.Integer)
     leaderBoardHeader = db.Column(db.String(50))
+    challengeRestrictionEnabled = db.Column(db.Integer)
 
     def __repr__(self):
         return f"User('{self.username}')"
@@ -116,17 +121,18 @@ def getAllUsers():
 
 def getCurrentQueue():
     # returns the current users in the table
-    return [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch) for queue in Queue.query.all()]
+    return [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime) for queue in Queue.query.all()]
 
 def validateRankedMatch(firstUser, secondUser):
     # checking the valid ranked match
 
     firstUserRank = Users.query.filter_by(username=firstUser).first().rank
     secondUserRank = Users.query.filter_by(username=secondUser).first().rank
+    challengeRestrictionEnabled = getchallengeRestrictionEnabled()
     if (firstUserRank == None or secondUserRank == None):                  # making sure the rank is not NULL.
         return False
     rank_diff = abs(firstUserRank - secondUserRank)                         # used for the rank diff restriction
-    max_rank_diff = 5
+    max_rank_diff = 5 if challengeRestrictionEnabled == 1 else 50
     return (Users.query.filter_by(username=firstUser).first().isParticipatingLeague == 1 and 
             Users.query.filter_by(username=secondUser).first().isParticipatingLeague == 1 and rank_diff < max_rank_diff)
 
@@ -237,7 +243,8 @@ def addAdminUser():
     user = Admin(username = 'admin',
                  password='nlsnow-pingpong',
                  isRankedEnabled = 0,
-                 leaderBoardHeader = 'Leaderboard - S4 (locked)')
+                 leaderBoardHeader = 'Leaderboard - S4 (locked)',
+                 challengeRestrictionEnabled = 0)
     db.session.add(user)
     db.session.commit()
 
@@ -267,11 +274,12 @@ def resultCorrection(firstUser, secondUser, isRanked, firstUserStreak=1, secondU
         actualLostPlayer.streak_normal = secondUserStreak
     db.session.commit()
 
-def addQueue(firstUser, secondUser, isRankedMatch):
+def addQueue(firstUser, secondUser, isRankedMatch, QueueEndTime):
     # adds the row to Queue db
     queue = Queue(firstUser=firstUser,
                   secondUser=secondUser,
-                  isRankedMatch=isRankedMatch)
+                  isRankedMatch=isRankedMatch,
+                  QueueEndTime=QueueEndTime)
     db.session.add(queue)
     db.session.commit()
 
@@ -310,6 +318,30 @@ def getCurrentLeaderBoardHeader():
 def updateCurrentLeaderBoardHeader(newHeader):
     Admin.query.filter_by(username='admin').first().leaderBoardHeader = newHeader
     db.session.commit()
+
+def getchallengeRestrictionEnabled():
+    return Admin.query.filter_by(username='admin').first().challengeRestrictionEnabled
+
+def updatechallengeRestrictionEnabled(flag):
+    Admin.query.filter_by(username='admin').first().challengeRestrictionEnabled = flag
+    db.session.commit()
+
+def getCurrentTimeQueueEndTimeDiffInSeconds():
+    if len(getCurrentQueue()) == 0:
+        return 86000
+    return (getCurrentQueue()[0][4] - datetime.datetime.now()).seconds
+
+def resetCurrentTimeQueueEndTimeDiffInSeconds():
+    if len(getCurrentQueue()) == 0:
+        return
+    firstQueue = getCurrentQueue()[0]
+    Queue.query.filter_by(id=firstQueue[2], firstUser=firstQueue[0], secondUser=firstQueue[1]).first().QueueEndTime = datetime.datetime.now()+timedelta(minutes=PLAYTIME)
+    db.session.commit()
+
+def isMatchExpired():
+    if len(getCurrentQueue()) == 0:
+        return False
+    return True if (getCurrentQueue()[0][4] - datetime.datetime.now()).days == -1 else False
 
 '''Below are the Functions that interact with frontEnd directly'''
 
@@ -472,11 +504,13 @@ def admin():
         username = session["user"]
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
+        challengeRestrictionEnabled = getchallengeRestrictionEnabled()
         if request.method == "GET":
             if username == 'admin':
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
             else:
                 return redirect(url_for("home"))
         if request.method == "POST":
@@ -486,21 +520,41 @@ def admin():
                 flash("Ranked game is turned off.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Turn on ranked game mode':
                 updateIsRankedEnabled(1)
                 isRankedEnabled = getIsRankedEnabled()
                 flash("Ranked game is turned on.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+
+            elif request.form['action'] == 'Turn off challenge restriction':
+                updatechallengeRestrictionEnabled(0)
+                challengeRestrictionEnabled = getchallengeRestrictionEnabled()
+                flash("Challenge restriction is turned off.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+            elif request.form['action'] == 'Turn on challenge restriction':
+                updatechallengeRestrictionEnabled(1)
+                challengeRestrictionEnabled = getchallengeRestrictionEnabled()
+                flash("Challenge restriction is turned on.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Submit':
                 if request.form['newHeader'] != '':
                     updateCurrentLeaderBoardHeader(request.form['newHeader'])
                 flash("Table header is updated.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Add':
                 if request.form['username'] != '' and request.form['email'] != '':
                     username = request.form['username']
@@ -512,14 +566,16 @@ def admin():
                         flash("Either username or email already exists.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Delete':
                 username = request.form['userToDelete']
                 deleteUser(username)
                 flash("{} is deleted.".format(username))
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Reset ranked game participations':
                 currentRankUsers = getCurrentLeaderBoard()[::-1]
                 for user in currentRankUsers:
@@ -527,7 +583,8 @@ def admin():
                 flash("Ranked participation is cleared.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
-                                        leaderBoardHeader=leaderBoardHeader)
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -568,12 +625,33 @@ def redirectMainGetRequest():
         currentRankUsers = getCurrentLeaderBoard()
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
+        remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
+        matchExpired = isMatchExpired()
+        """ if matchExpired:
+                firstCurrentPlayer = currentQueue[0][0]
+                secondCurrentPlayer = currentQueue[0][1]
+                queueID = currentQueue[0][2]
+                currentQueue = getCurrentQueue()
+                currentQueueSize = len(currentQueue)
+                deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
+                currentQueue = getCurrentQueue()
+                if(currentQueueSize != 1):
+                        flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                        sendNotificationEmail(0)
+                        return redirect(url_for("main",
+                                            currentUsers=currentUsers,
+                                            currentQueue=currentQueue,
+                                            currentRankUsers=currentRankUsers,
+                                            leaderBoardHeader=leaderBoardHeader,
+                                            isRankedEnabled=isRankedEnabled,
+                                            remainingTime=remainingTime)) """
         return render_template("main.html", 
                     currentUsers=currentUsers,
                     currentQueue=currentQueue,
                     currentRankUsers=currentRankUsers,
                     leaderBoardHeader=leaderBoardHeader,
-                    isRankedEnabled=isRankedEnabled)
+                    isRankedEnabled=isRankedEnabled,
+                    remainingTime=remainingTime)
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -587,6 +665,8 @@ def main():
         currentRankUsers = getCurrentLeaderBoard()
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
+        currentQueue = getCurrentQueue()
+        remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
         if request.method == "POST":
             if request.form['action'] == 'Submit':                                      # button for adding the match to the queue
                 firstPlayer = request.form["firstPlayer"]
@@ -600,7 +680,8 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
                 if firstPlayer == secondPlayer:                                         # when accidentally adding same players
                     flash("You can't play yourself!", "error")
                     currentQueue = getCurrentQueue()
@@ -609,18 +690,20 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
                 if (isRankedMatch):
-                    addQueue(firstPlayer, secondPlayer, 1)
+                    addQueue(firstPlayer, secondPlayer, 1, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
                 else:
-                    addQueue(firstPlayer, secondPlayer, 0)
+                    addQueue(firstPlayer, secondPlayer, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
                 currentQueue = getCurrentQueue()
                 return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
             elif request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
@@ -634,6 +717,7 @@ def main():
                 if dontRecordStatsChecked:
                     deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                     currentQueue = getCurrentQueue()
+                    resetCurrentTimeQueueEndTimeDiffInSeconds()
                     if(not dontSendEmailChecked and currentQueueSize != 1):
                         flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
                         sendNotificationEmail(0)
@@ -642,7 +726,8 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
                 #if (currentQueue[0][3]==1):                                                 # if the match is ranked:
                 if (not firstWins and not secondWins):
                     flash("Winner must be chosen!",'error')
@@ -651,7 +736,8 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
                 elif (firstWins and secondWins):
                     flash("There can only be one winner!",'error')
                     return redirect(url_for("main",
@@ -659,7 +745,8 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
                 else:
                     if (currentQueue[0][3]==1):
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
@@ -678,6 +765,7 @@ def main():
                             recordNormalStatistics(secondCurrentPlayer, 1)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                 currentQueue = getCurrentQueue()
+                resetCurrentTimeQueueEndTimeDiffInSeconds()
                 if(not dontSendEmailChecked and currentQueueSize != 1):
                     flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
                     sendNotificationEmail(0)
@@ -686,7 +774,8 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
             elif request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
@@ -698,7 +787,8 @@ def main():
                                         currentQueue=currentQueue,
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        isRankedEnabled=isRankedEnabled))       
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))       
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:

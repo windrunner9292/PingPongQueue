@@ -121,7 +121,9 @@ def getAllUsers():
 
 def getCurrentQueue():
     # returns the current users in the table
-    return [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime) for queue in Queue.query.all()]
+    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime) for queue in Queue.query.all()]
+    currentQueue.sort(key=lambda x:x[2])
+    return currentQueue
 
 def validateRankedMatch(firstUser, secondUser):
     # checking the valid ranked match

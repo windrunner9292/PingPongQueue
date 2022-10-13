@@ -18,7 +18,9 @@
 <br/>
 
 <p hidden><span id="remainingTimeValue">{{ remainingTime }}</span></p>
-{% if remainingTime < 85000 %}
+{% if currentQueue|length == 0 or currentQueue[0][5] == 1 %}
+  <p hidden class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
+{% elif remainingTime < 85000 %}
   <p class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
 {% elif remainingTime >= 85000 and currentQueue|length != 0 %}
   <p class="sub-headers">Current game is over. Please proceed to the next game.</span></p>
@@ -32,6 +34,8 @@
   {% elif currentQueue|length > 0 %}
     {% if currentQueue[0][3] == 1 %}
       <p class="sub-headers">Currently playing <span style="color:red">Ranked Match:</span></p>
+    {% elif currentQueue[0][5] == 1 %}
+      <p class="sub-headers">Currently playing <span style="color:red">Tournament Match:</span></p>  
     {% elif currentQueue[0][3] == 0 %}
       <p class="sub-headers">Currently playing <span style="color:red">Normal Match:</span></p>
     {% endif %}
@@ -76,6 +80,8 @@
       <input type="hidden" value={{ i }} name="currentIteration">
       {% if currentQueue[i][3] == 1 %}
 			  <label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }} (ranked)</strong>&nbsp;</label>
+      {% elif currentQueue[i][5] == 1 %}
+        <label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }} (Tourney)</strong>&nbsp;</label>
       {% elif currentQueue[i][3] == 0 %}
         <label for="Delete"><strong>{{ currentQueue[i][0] }}</strong> vs. <strong>{{ currentQueue[i][1] }} (normal)</strong>&nbsp;</label>
       {% endif %}
@@ -115,6 +121,9 @@
           {% if isRankedEnabled == 1 %}
             <input type="checkbox"name="rankedMatch">
             <label>Ranked Match</label><br>
+          {% else %}
+            <input type="checkbox" id="eMail" name="tourneyGame">
+            <label>Tournament Game</label><br>
           {% endif %}
         </div>
       </div>

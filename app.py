@@ -80,6 +80,7 @@ class Queue(db.Model):
     firstUser = db.Column(db.String(20), unique=False, nullable=False)
     secondUser = db.Column(db.String(50), unique=False, nullable=False)
     isRankedMatch = db.Column(db.Integer)
+    isTournamentMatch = db.Column(db.Integer)
     QueueEndTime = db.Column(db.DateTime)
 
     def __repr__(self):
@@ -93,6 +94,22 @@ class Admin(db.Model):
     isRankedEnabled = db.Column(db.Integer)
     leaderBoardHeader = db.Column(db.String(50))
     challengeRestrictionEnabled = db.Column(db.Integer)
+
+    winner_eight_nine = db.Column(db.String(50))
+    winner_five_twelve = db.Column(db.String(50))
+    winner_seven_ten = db.Column(db.String(50))
+    winner_six_eleven = db.Column(db.String(50))
+
+    winner_first_ro8 = db.Column(db.String(50))
+    winner_second_r08 = db.Column(db.String(50))
+    winner_third_ro8 = db.Column(db.String(50))
+    winner_fourth_ro8 = db.Column(db.String(50))
+
+    winner_first_semifinal = db.Column(db.String(50))
+    winner_second_semifinal = db.Column(db.String(50))
+
+    winner_final = db.Column(db.String(50))
+    winner_third_fourth = db.Column(db.String(50))
 
     def __repr__(self):
         return f"User('{self.username}')"
@@ -121,7 +138,7 @@ def getAllUsers():
 
 def getCurrentQueue():
     # returns the current users in the table
-    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime) for queue in Queue.query.all()]
+    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime, queue.isTournamentMatch) for queue in Queue.query.all()]
     currentQueue.sort(key=lambda x:x[2])
     return currentQueue
 
@@ -276,11 +293,12 @@ def resultCorrection(firstUser, secondUser, isRanked, firstUserStreak=1, secondU
         actualLostPlayer.streak_normal = secondUserStreak
     db.session.commit()
 
-def addQueue(firstUser, secondUser, isRankedMatch, QueueEndTime):
+def addQueue(firstUser, secondUser, isRankedMatch, isTournamentMatch, QueueEndTime):
     # adds the row to Queue db
     queue = Queue(firstUser=firstUser,
                   secondUser=secondUser,
                   isRankedMatch=isRankedMatch,
+                  isTournamentMatch=isTournamentMatch,
                   QueueEndTime=QueueEndTime)
     db.session.add(queue)
     db.session.commit()
@@ -345,6 +363,92 @@ def isMatchExpired():
         return False
     return True if (getCurrentQueue()[0][4] - datetime.datetime.now()).days == -1 else False
 
+def update_winner_eight_nine(username):
+    Admin.query.filter_by(username='admin').first().winner_eight_nine = username
+    db.session.commit()
+
+def update_winner_five_twelve(username):
+    Admin.query.filter_by(username='admin').first().winner_five_twelve = username
+    db.session.commit()
+
+def update_winner_seven_ten(username):
+    Admin.query.filter_by(username='admin').first().winner_seven_ten = username
+    db.session.commit()
+
+def update_winner_six_eleven(username):
+    Admin.query.filter_by(username='admin').first().winner_six_eleven = username
+    db.session.commit()
+
+def update_winner_first_ro8(username):
+    Admin.query.filter_by(username='admin').first().winner_first_ro8 = username
+    db.session.commit()
+
+def update_winner_second_r08(username):
+    Admin.query.filter_by(username='admin').first().winner_second_r08 = username
+    db.session.commit()
+
+def update_winner_third_ro8(username):
+    Admin.query.filter_by(username='admin').first().winner_third_ro8 = username
+    db.session.commit()
+
+def update_winner_fourth_ro8(username):
+    Admin.query.filter_by(username='admin').first().winner_fourth_ro8 = username
+    db.session.commit()
+
+def update_winner_first_semifinal(username):
+    Admin.query.filter_by(username='admin').first().winner_first_semifinal = username
+    db.session.commit()
+
+def update_winner_second_semifinal(username):
+    Admin.query.filter_by(username='admin').first().winner_second_semifinal = username
+    db.session.commit()
+
+def update_winner_final(username):
+    Admin.query.filter_by(username='admin').first().winner_final = username
+    db.session.commit()
+
+def update_winner_third_fourth(username):
+    Admin.query.filter_by(username='admin').first().winner_third_fourth = username
+    db.session.commit()
+
+def resetBracket():
+    Admin.query.filter_by(username='admin').first().winner_eight_nine = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_five_twelve = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_seven_ten = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_six_eleven = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_first_ro8 = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_second_r08 = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_third_ro8 = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_fourth_ro8 = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_first_semifinal = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_second_semifinal = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_final = 'TBD'
+    Admin.query.filter_by(username='admin').first().winner_third_fourth = 'TBD'
+    db.session.commit()
+
+def updateBracket(winner_eight_nine,winner_five_twelve,winner_seven_ten,winner_six_eleven,winner_first_ro8,winner_second_r08,winner_third_ro8,winner_fourth_ro8,winner_first_semifinal,winner_second_semifinal,winner_final):
+    Admin.query.filter_by(username='admin').first().winner_eight_nine = winner_eight_nine
+    Admin.query.filter_by(username='admin').first().winner_five_twelve = winner_five_twelve
+    Admin.query.filter_by(username='admin').first().winner_seven_ten = winner_seven_ten
+    Admin.query.filter_by(username='admin').first().winner_six_eleven = winner_six_eleven
+    Admin.query.filter_by(username='admin').first().winner_first_ro8 = winner_first_ro8
+    Admin.query.filter_by(username='admin').first().winner_second_r08 = winner_second_r08
+    Admin.query.filter_by(username='admin').first().winner_third_ro8 = winner_third_ro8
+    Admin.query.filter_by(username='admin').first().winner_fourth_ro8 = winner_fourth_ro8
+    Admin.query.filter_by(username='admin').first().winner_first_semifinal = winner_first_semifinal
+    Admin.query.filter_by(username='admin').first().winner_second_semifinal = winner_second_semifinal
+    Admin.query.filter_by(username='admin').first().winner_final = winner_final
+    #Admin.query.filter_by(username='admin').first().winner_third_fourth = winner_third_fourth
+    db.session.commit()
+
+def getBracket():
+    return [Admin.query.filter_by(username='admin').first().winner_eight_nine,Admin.query.filter_by(username='admin').first().winner_five_twelve,
+            Admin.query.filter_by(username='admin').first().winner_seven_ten,Admin.query.filter_by(username='admin').first().winner_six_eleven,
+            Admin.query.filter_by(username='admin').first().winner_first_ro8,Admin.query.filter_by(username='admin').first().winner_second_r08,
+            Admin.query.filter_by(username='admin').first().winner_third_ro8,Admin.query.filter_by(username='admin').first().winner_fourth_ro8,
+            Admin.query.filter_by(username='admin').first().winner_first_semifinal,Admin.query.filter_by(username='admin').first().winner_second_semifinal,
+            Admin.query.filter_by(username='admin').first().winner_final,Admin.query.filter_by(username='admin').first().winner_third_fourth]
+
 '''Below are the Functions that interact with frontEnd directly'''
 
 @app.route("/")
@@ -391,18 +495,42 @@ def hallOfFame():
             flash("Please login.")
             return render_template("index.html")
 
-@app.route('/bracket', methods = ['GET'])
+@app.route('/bracket', methods = ['GET','POST'])
 def bracket():
     # workflow when 'Bracket' is clicked.
 
     currentRankUsers = getCurrentLeaderBoard()
+    currentBracket = getBracket()
     if request.method == "GET":                                     # when landing on this page using GET request
         if "user" in session:                                       # if there is a active session
             return render_template("bracket.html",
-                                    currentRankUsers=currentRankUsers)
+                                    currentRankUsers=currentRankUsers,
+                                    currentBracket=currentBracket)
         else:
             flash("Please login.")
             return render_template("index.html")
+    if request.method == "POST":
+        if request.form['action'] == 'Update':
+            winner_eight_nine = request.form['winner_eight_nine']
+            winner_five_twelve = request.form['winner_five_twelve']
+            winner_seven_ten = request.form['winner_seven_ten']
+            winner_six_eleven = request.form['winner_six_eleven']
+            winner_first_ro8 = request.form['winner_first_ro8']
+            winner_second_r08 = request.form['winner_second_r08']
+            winner_third_ro8 = request.form['winner_third_ro8']
+            winner_fourth_ro8 = request.form['winner_fourth_ro8']
+            winner_first_semifinal = request.form['winner_first_semifinal']
+            winner_second_semifinal = request.form['winner_second_semifinal']
+            winner_final = request.form['winner_final']
+            #winner_third_fourth = request.form['winner_third_fourth']
+            updateBracket(winner_eight_nine,winner_five_twelve,winner_seven_ten,winner_six_eleven,
+                          winner_first_ro8,winner_second_r08,winner_third_ro8,winner_fourth_ro8,
+                          winner_first_semifinal,winner_second_semifinal,winner_final)
+            currentBracket = getBracket()
+            flash(f"Bracket info is updated.", "info")
+            return render_template("bracket.html",
+                                    currentRankUsers=currentRankUsers,
+                                    currentBracket=currentBracket)
 
 @app.route('/adminLogin', methods = ['GET','POST'])
 def adminLogin():
@@ -572,6 +700,8 @@ def admin():
                                         challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Delete':
                 username = request.form['userToDelete']
+                if Users.query.filter_by(username=username).first().isParticipatingLeague == 1:
+                    updateLeagueParticipation(username,0)
                 deleteUser(username)
                 flash("{} is deleted.".format(username))
                 return render_template("admin.html",
@@ -583,6 +713,13 @@ def admin():
                 for user in currentRankUsers:
                     updateLeagueParticipation(user[0],0)
                 flash("Ranked participation is cleared.")
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+            elif request.form['action'] == 'Reset bracket':
+                resetBracket()
+                flash("Bracket is cleared.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
@@ -674,6 +811,7 @@ def main():
                 firstPlayer = request.form["firstPlayer"]
                 secondPlayer = request.form["secondPlayer"]
                 isRankedMatch = "rankedMatch" in request.form
+                isTournamentGame = "tourneyGame" in request.form
                 if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
                     flash("Invalid ranked match", 'error')
                     currentQueue = getCurrentQueue()
@@ -695,9 +833,11 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime))
                 if (isRankedMatch):
-                    addQueue(firstPlayer, secondPlayer, 1, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
+                    addQueue(firstPlayer, secondPlayer, 1, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
+                elif (not isRankedMatch and isTournamentGame):
+                    addQueue(firstPlayer, secondPlayer, 0, 1, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
                 else:
-                    addQueue(firstPlayer, secondPlayer, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
+                    addQueue(firstPlayer, secondPlayer, 0, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
                 currentQueue = getCurrentQueue()
                 return redirect(url_for("main",
                                         currentUsers=currentUsers,

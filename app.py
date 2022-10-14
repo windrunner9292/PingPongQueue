@@ -832,6 +832,16 @@ def main():
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime))
+                if firstPlayer not in currentUsers or secondPlayer not in currentUsers:                 # when accidentally adding unregistered user
+                    flash("Unregistered user.", "error")
+                    currentQueue = getCurrentQueue()
+                    return redirect(url_for("main",
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime))
                 if (isRankedMatch):
                     addQueue(firstPlayer, secondPlayer, 1, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
                 elif (not isRankedMatch and isTournamentGame):

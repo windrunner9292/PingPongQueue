@@ -16,7 +16,7 @@ body {
 
 #players-container {
     text-align: center;
-    border: 3px solid green;
+    border: 3px solid #001080;
     border-radius: 25px;
     padding: 10px 10px 10px;
 }

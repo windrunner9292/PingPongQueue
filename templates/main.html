@@ -97,23 +97,21 @@
     <form action="{{url_for('main')}}" method="post">
       <div>
         <label for="firstPlayer"><strong>Player 1: </strong></label>
-        <select name="firstPlayer">
+        <input id="players-list-container" list="first-player-list" value= {{ session["user"] }} name="firstPlayer">
+        <datalist id="first-player-list">
           {% for user in currentUsers %}
-            {% if user == session["user"] %}
-              <option value= {{ user }} selected>{{ user }}</option>
-            {% else %}
-              <option value= {{ user }}>{{ user }}</option>
-            {% endif %}
+            <option value= {{ user }}>{{ user }}</option>
           {% endfor %}
-        </select>
+        </datalist>
       </div>
       <div>
         <label for="secondPlayer"><strong>Player 2: </strong></label>
-        <select name="secondPlayer">
+        <input id="players-list-container" list="second-player-list" name="secondPlayer">
+        <datalist id="second-player-list">
           {% for user in currentUsers %}
-            <option value= {{ user }} >{{ user }}</option>
+            <option value= {{ user }}>{{ user }}</option>
           {% endfor %}
-        </select>
+        </datalist>
       </div>
       <input type="submit" name="action" value="Submit"/>
       <div class="inline-display">

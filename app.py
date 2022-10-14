@@ -647,7 +647,7 @@ def admin():
             if request.form['action'] == 'Turn off ranked game mode':
                 updateIsRankedEnabled(0)
                 isRankedEnabled = getIsRankedEnabled()
-                flash("Ranked game is turned off.")
+                flash("Ranked game is now turned off.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
@@ -655,7 +655,7 @@ def admin():
             elif request.form['action'] == 'Turn on ranked game mode':
                 updateIsRankedEnabled(1)
                 isRankedEnabled = getIsRankedEnabled()
-                flash("Ranked game is turned on.")
+                flash("Ranked game is now turned on.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
@@ -664,7 +664,7 @@ def admin():
             elif request.form['action'] == 'Turn off challenge restriction':
                 updatechallengeRestrictionEnabled(0)
                 challengeRestrictionEnabled = getchallengeRestrictionEnabled()
-                flash("Challenge restriction is turned off.")
+                flash("Challenge restriction is now turned off.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
@@ -672,7 +672,7 @@ def admin():
             elif request.form['action'] == 'Turn on challenge restriction':
                 updatechallengeRestrictionEnabled(1)
                 challengeRestrictionEnabled = getchallengeRestrictionEnabled()
-                flash("Challenge restriction is turned on.")
+                flash("Challenge restriction is now turned on.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,

@@ -71,35 +71,36 @@
         
         <li class="game game-top"> 1. {{ currentRankUsers[0][0] }} <span></span></li>
         <li class="game game-spacer">&nbsp;</li>
-        <select class="game game-bottom" name="winner_eight_nine">
-          {% if currentBracket[0] == 'TBD' %}
+        {% if currentBracket[0] == 'TBD' %}
+          <select class="game game-bottom" name="winner_eight_nine">
             <option selected value="TBD">TBD</option>
             <option value={{ currentRankUsers[7][0] }} >{{ currentRankUsers[7][0] }}</option>
             <option value={{ currentRankUsers[8][0] }} >{{ currentRankUsers[8][0] }}</option>
-          {% elif currentBracket[0] == currentRankUsers[7][0] %}
-            <option value={{ currentRankUsers[7][0] }} selected>{{ currentRankUsers[7][0] }}</option>
-            <option value={{ currentRankUsers[8][0] }} >{{ currentRankUsers[8][0] }}</option>
-          {% elif currentBracket[0] == currentRankUsers[8][0] %}
-            <option value={{ currentRankUsers[7][0] }}>{{ currentRankUsers[7][0] }}</option>
-            <option value={{ currentRankUsers[8][0] }} selected>{{ currentRankUsers[8][0] }}</option>
-          {% endif %}
-        </select>
+          </select>
+        {% elif currentBracket[0] == currentRankUsers[7][0] %}
+          <input type="hidden" value={{ currentRankUsers[7][0] }} name="winner_eight_nine">
+          <li class="game game-bottom winner" name="winner_eight_nine"> {{ currentRankUsers[7][0] }} <span></span></li>
+        {% elif currentBracket[0] == currentRankUsers[8][0] %}
+          <input type="hidden" value={{ currentRankUsers[8][0] }} name="winner_eight_nine">
+          <li class="game game-bottom winner" name="winner_eight_nine"> {{ currentRankUsers[8][0] }} <span></span></li>
+        {% endif %}
     
         <li class="spacer">&nbsp;</li>
 
-        <select class="game game-top" name="winner_five_twelve">
-          {% if currentBracket[1] == 'TBD' %}
+        {% if currentBracket[1] == 'TBD' %}
+          <select class="game game-top" name="winner_five_twelve">
             <option selected value="TBD">TBD</option>
             <option value={{ currentRankUsers[4][0] }} >{{ currentRankUsers[4][0] }}</option>
             <option value={{ currentRankUsers[11][0] }} >{{ currentRankUsers[11][0] }}</option>
-          {% elif currentBracket[1] == currentRankUsers[4][0] %}
-            <option value={{ currentRankUsers[4][0] }} selected>{{ currentRankUsers[4][0] }}</option>
-            <option value={{ currentRankUsers[11][0] }} >{{ currentRankUsers[11][0] }}</option>
-          {% elif currentBracket[1] == currentRankUsers[11][0] %}
-            <option value={{ currentRankUsers[4][0] }}>{{ currentRankUsers[4][0] }}</option>
-            <option value={{ currentRankUsers[11][0] }} selected>{{ currentRankUsers[11][0] }}</option>
-          {% endif %}
-        </select>
+          </select>
+        {% elif currentBracket[1] == currentRankUsers[4][0] %}
+          <input type="hidden" value={{ currentRankUsers[4][0] }} name="winner_five_twelve">
+          <li class="game game-top winner"> {{ currentRankUsers[4][0] }} <span></span></li>
+        {% elif currentBracket[1] == currentRankUsers[11][0] %}
+          <input type="hidden" value={{ currentRankUsers[11][0] }} name="winner_five_twelve">
+          <li class="game game-top winner"> {{ currentRankUsers[11][0] }} <span></span></li>
+        {% endif %}
+        
         <li class="game game-spacer">&nbsp;</li>
         <li class="game game-bottom "> 4. {{ currentRankUsers[3][0] }} <span></span></li>
     
@@ -107,35 +108,36 @@
         
         <li class="game game-top "> 2. {{ currentRankUsers[1][0] }} <span></span></li>
         <li class="game game-spacer">&nbsp;</li>
+        {% if currentBracket[2] == 'TBD' %}
         <select class="game game-bottom" name="winner_seven_ten">
-          {% if currentBracket[2] == 'TBD' %}
-            <option selected value="TBD">TBD</option>
-            <option value={{ currentRankUsers[6][0] }} >{{ currentRankUsers[6][0] }}</option>
-            <option value={{ currentRankUsers[9][0] }} >{{ currentRankUsers[9][0] }}</option>
-          {% elif currentBracket[2] == currentRankUsers[6][0] %}
-            <option value={{ currentRankUsers[6][0] }} selected>{{ currentRankUsers[6][0] }}</option>
-            <option value={{ currentRankUsers[9][0] }} >{{ currentRankUsers[9][0] }}</option>
-          {% elif currentBracket[2] == currentRankUsers[9][0] %}
-            <option value={{ currentRankUsers[6][0] }}>{{ currentRankUsers[6][0] }}</option>
-            <option value={{ currentRankUsers[9][0] }} selected>{{ currentRankUsers[9][0] }}</option>
-          {% endif %}
+          <option selected value="TBD">TBD</option>
+          <option value={{ currentRankUsers[6][0] }} >{{ currentRankUsers[6][0] }}</option>
+          <option value={{ currentRankUsers[9][0] }} >{{ currentRankUsers[9][0] }}</option>
         </select>
+        {% elif currentBracket[2] == currentRankUsers[6][0] %}
+          <input type="hidden" value={{ currentRankUsers[6][0] }} name="winner_seven_ten">
+          <li class="game game-bottom winner"> {{ currentRankUsers[6][0] }} <span></span></li>
+        {% elif currentBracket[2] == currentRankUsers[9][0] %}
+          <input type="hidden" value={{ currentRankUsers[9][0] }} name="winner_seven_ten">
+          <li class="game game-bottom winner"> {{ currentRankUsers[9][0] }} <span></span></li>
+        {% endif %}
+        
 
         <li class="spacer">&nbsp;</li>
         
-        <select class="game game-top" name="winner_six_eleven">
-          {% if currentBracket[3] == 'TBD' %}
+        {% if currentBracket[3] == 'TBD' %}
+          <select class="game game-top" name="winner_six_eleven">
             <option selected value="TBD">TBD</option>
             <option value={{ currentRankUsers[5][0] }} >{{ currentRankUsers[5][0] }}</option>
             <option value={{ currentRankUsers[10][0] }} >{{ currentRankUsers[10][0] }}</option>
-          {% elif currentBracket[3] == currentRankUsers[5][0] %}
-            <option value={{ currentRankUsers[5][0] }} selected>{{ currentRankUsers[5][0] }}</option>
-            <option value={{ currentRankUsers[10][0] }} >{{ currentRankUsers[10][0] }}</option>
-          {% elif currentBracket[3] == currentRankUsers[10][0] %}
-            <option value={{ currentRankUsers[5][0] }}>{{ currentRankUsers[5][0] }}</option>
-            <option value={{ currentRankUsers[10][0] }} selected>{{ currentRankUsers[10][0] }}</option>
-          {% endif %}
-        </select>
+          </select>
+        {% elif currentBracket[3] == currentRankUsers[5][0] %}
+          <input type="hidden" value={{ currentRankUsers[5][0] }} name="winner_six_eleven">
+          <li class="game game-top winner"> {{ currentRankUsers[5][0] }} <span></span></li>
+        {% elif currentBracket[3] == currentRankUsers[10][0] %}
+          <input type="hidden" value={{ currentRankUsers[10][0] }} name="winner_six_eleven">
+          <li class="game game-top winner"> {{ currentRankUsers[10][0] }} <span></span></li>
+        {% endif %}
         <li class="game game-spacer">&nbsp;</li>
         <li class="game game-bottom"> 3. {{ currentRankUsers[2][0] }} <span></span></li>
     
@@ -145,19 +147,19 @@
         <li class="spacer">&nbsp;</li>
         
         {% if currentBracket[0] != 'TBD' %}
-          <select class="game game-top" name="winner_first_ro8">
-            {% if currentBracket[4] == 'TBD' %}
-                <option selected value="TBD">TBD</option>
-                <option value={{ currentRankUsers[0][0] }} >{{ currentRankUsers[0][0] }}</option>
-                <option value={{ currentBracket[0] }} >{{ currentBracket[0] }}</option>
-            {% elif currentBracket[4] == currentRankUsers[0][0] %}
-              <option value={{ currentRankUsers[0][0] }} selected>{{ currentRankUsers[0][0] }}</option>
+          {% if currentBracket[4] == 'TBD' %}
+            <select class="game game-top" name="winner_first_ro8">
+              <option selected value="TBD">TBD</option>
+              <option value={{ currentRankUsers[0][0] }} >{{ currentRankUsers[0][0] }}</option>
               <option value={{ currentBracket[0] }} >{{ currentBracket[0] }}</option>
-            {% elif currentBracket[4] == currentBracket[0] %}
-              <option value={{ currentRankUsers[0][0] }}>{{ currentRankUsers[0][0] }}</option>
-              <option value={{ currentBracket[0] }} selected>{{ currentBracket[0] }}</option>
-            {% endif %}
-          </select>
+            </select>
+          {% elif currentBracket[4] == currentRankUsers[0][0] %}
+            <input type="hidden" value={{ currentRankUsers[0][0] }} name="winner_first_ro8">
+            <li class="game game-top winner"> {{ currentRankUsers[0][0] }} <span></span></li>
+          {% elif currentBracket[4] == currentBracket[0] %}
+            <input type="hidden" value={{ currentBracket[0] }} name="winner_first_ro8">
+            <li class="game game-top winner"> {{ currentBracket[0] }} <span></span></li>
+          {% endif %}
         {% else %}
           <input type="hidden" value='TBD' name="winner_first_ro8">
           <li class="game game-top">{{ currentBracket[4] }}<span></span></li>
@@ -165,19 +167,19 @@
         <li class="game game-spacer">&nbsp;</li>
 
         {% if currentBracket[1] != 'TBD' %}
-          <select class="game game-bottom" name="winner_second_r08">
-            {% if currentBracket[5] == 'TBD' %}
-                <option selected value="TBD">TBD</option>
-                <option value={{ currentBracket[1] }} >{{ currentBracket[1] }}</option>
-                <option value={{ currentRankUsers[3][0] }} >{{ currentRankUsers[3][0] }}</option>
-            {% elif currentBracket[5] == currentRankUsers[3][0] %}
+          {% if currentBracket[5] == 'TBD' %}
+            <select class="game game-bottom" name="winner_second_r08">
+              <option selected value="TBD">TBD</option>
               <option value={{ currentBracket[1] }} >{{ currentBracket[1] }}</option>
-              <option value={{ currentRankUsers[3][0] }} selected>{{ currentRankUsers[3][0] }}</option>
-            {% elif currentBracket[5] == currentBracket[1] %}
-              <option value={{ currentBracket[1] }} selected>{{ currentBracket[1] }}</option>
-              <option value={{ currentRankUsers[3][0] }}>{{ currentRankUsers[3][0] }}</option>
-            {% endif %}
-          </select>
+              <option value={{ currentRankUsers[3][0] }} >{{ currentRankUsers[3][0] }}</option>
+            </select>
+          {% elif currentBracket[5] == currentRankUsers[3][0] %}
+            <input type="hidden" value={{ currentRankUsers[3][0] }} name="winner_second_r08">
+            <li class="game game-bottom winner"> {{ currentRankUsers[3][0] }} <span></span></li>
+          {% elif currentBracket[5] == currentBracket[1] %}
+            <input type="hidden" value={{ currentBracket[1] }} name="winner_second_r08">
+            <li class="game game-bottom winner"> {{ currentBracket[1] }} <span></span></li>
+          {% endif %}
         {% else %}
           <input type="hidden" value='TBD' name="winner_second_r08">
           <li class="game game-bottom ">{{ currentBracket[5] }}<span></span></li>
@@ -186,19 +188,19 @@
         <li class="spacer">&nbsp;</li>
         
         {% if currentBracket[2] != 'TBD' %}
-          <select class="game game-top" name="winner_third_ro8">
-            {% if currentBracket[6] == 'TBD' %}
-                <option selected value="TBD">TBD</option>
-                <option value={{ currentRankUsers[1][0] }} >{{ currentRankUsers[1][0] }}</option>
-                <option value={{ currentBracket[2] }} >{{ currentBracket[2] }}</option>
-            {% elif currentBracket[6] == currentRankUsers[1][0] %}
-              <option value={{ currentRankUsers[1][0] }} selected>{{ currentRankUsers[1][0] }}</option>
+          {% if currentBracket[6] == 'TBD' %}
+            <select class="game game-top" name="winner_third_ro8">
+              <option selected value="TBD">TBD</option>
+              <option value={{ currentRankUsers[1][0] }} >{{ currentRankUsers[1][0] }}</option>
               <option value={{ currentBracket[2] }} >{{ currentBracket[2] }}</option>
+            </select>
+            {% elif currentBracket[6] == currentRankUsers[1][0] %}
+              <input type="hidden" value={{ currentRankUsers[1][0] }} name="winner_third_ro8">
+              <li class="game game-top winner"> {{ currentRankUsers[1][0] }} <span></span></li>
             {% elif currentBracket[6] == currentBracket[2] %}
-              <option value={{ currentRankUsers[1][0] }}>{{ currentRankUsers[1][0] }}</option>
-              <option value={{ currentBracket[2] }} selected>{{ currentBracket[2] }}</option>
+              <input type="hidden" value={{ currentBracket[2] }} name="winner_third_ro8">
+              <li class="game game-top winner"> {{ currentBracket[2] }} <span></span></li>
             {% endif %}
-          </select>
         {% else %}
           <input type="hidden" value='TBD' name="winner_third_ro8">
           <li class="game game-top ">{{ currentBracket[6] }}<span></span></li>
@@ -206,19 +208,19 @@
         <li class="game game-spacer">&nbsp;</li>
 
         {% if currentBracket[3] != 'TBD' %}
-          <select class="game game-bottom" name="winner_fourth_ro8">
-            {% if currentBracket[7] == 'TBD' %}
+          {% if currentBracket[7] == 'TBD' %}
+            <select class="game game-bottom" name="winner_fourth_ro8">
               <option selected value="TBD">TBD</option>
               <option value={{ currentBracket[3] }} >{{ currentBracket[3] }}</option>
               <option value={{ currentRankUsers[2][0] }} >{{ currentRankUsers[2][0] }}</option>
-            {% elif currentBracket[7] == currentRankUsers[2][0] %}
-              <option value={{ currentBracket[3] }} >{{ currentBracket[3] }}</option>
-              <option value={{ currentRankUsers[2][0] }} selected>{{ currentRankUsers[2][0] }}</option>
-            {% elif currentBracket[7] == currentBracket[3] %}
-              <option value={{ currentBracket[3] }} selected>{{ currentBracket[3] }}</option>
-              <option value={{ currentRankUsers[2][0] }}>{{ currentRankUsers[2][0] }}</option>
-            {% endif %}
-          </select>
+            </select>
+          {% elif currentBracket[7] == currentRankUsers[2][0] %}
+            <input type="hidden" value={{ currentRankUsers[2][0] }} name="winner_fourth_ro8">
+            <li class="game game-bottom winner"> {{ currentRankUsers[2][0] }} <span></span></li>
+          {% elif currentBracket[7] == currentBracket[3] %}
+            <input type="hidden" value={{ currentBracket[3] }} name="winner_fourth_ro8">
+            <li class="game game-bottom winner"> {{ currentBracket[3] }} <span></span></li>
+          {% endif %}
         {% else %}
           <input type="hidden" value='TBD' name="winner_fourth_ro8">
           <li class="game game-bottom">{{ currentBracket[7] }}<span></span></li>
@@ -230,19 +232,19 @@
         <li class="spacer">&nbsp;</li>
         
         {% if currentBracket[4] != 'TBD' and currentBracket[5] != 'TBD' %}
-          <select class="game game-top" name="winner_first_semifinal">
-            {% if currentBracket[8] == 'TBD' %}
+          {% if currentBracket[8] == 'TBD' %}
+            <select class="game game-top" name="winner_first_semifinal">
               <option selected value="TBD">TBD</option>
               <option value={{ currentBracket[4] }} >{{ currentBracket[4] }}</option>
               <option value={{ currentBracket[5] }} >{{ currentBracket[5] }}</option>
-            {% elif currentBracket[8] == currentBracket[5] %}
-              <option value={{ currentBracket[4] }} >{{ currentBracket[4] }}</option>
-              <option value={{ currentBracket[5] }} selected>{{ currentBracket[5] }}</option>
-            {% elif currentBracket[8] == currentBracket[4] %}
-              <option value={{ currentBracket[4] }} selected>{{ currentBracket[4] }}</option>
-              <option value={{ currentBracket[5] }}>{{ currentBracket[5] }}</option>
-            {% endif %}
-          </select>
+            </select>
+          {% elif currentBracket[8] == currentBracket[5] %}
+            <input type="hidden" value={{ currentBracket[5] }} name="winner_first_semifinal">
+            <li class="game game-top winner"> {{ currentBracket[5] }} <span></span></li>
+          {% elif currentBracket[8] == currentBracket[4] %}
+            <input type="hidden" value={{ currentBracket[4] }} name="winner_first_semifinal">
+            <li class="game game-top winner"> {{ currentBracket[4] }} <span></span></li>
+          {% endif %}
         {% else %}
           <input type="hidden" value='TBD' name="winner_first_semifinal">
           <li class="game game-top">{{ currentBracket[8] }}<span></span></li>
@@ -250,19 +252,19 @@
         <li class="game game-spacer">&nbsp;</li>
 
         {% if currentBracket[6] != 'TBD' and currentBracket[7] != 'TBD' %}
-          <select class="game game-bottom" name="winner_second_semifinal">
-            {% if currentBracket[9] == 'TBD' %}
+          {% if currentBracket[9] == 'TBD' %}
+            <select class="game game-bottom" name="winner_second_semifinal">
               <option selected value="TBD">TBD</option>
               <option value={{ currentBracket[6] }} >{{ currentBracket[6] }}</option>
               <option value={{ currentBracket[7] }} >{{ currentBracket[7] }}</option>
+            </select>
             {% elif currentBracket[9] == currentBracket[7] %}
-              <option value={{ currentBracket[6] }} >{{ currentBracket[6] }}</option>
-              <option value={{ currentBracket[7] }} selected>{{ currentBracket[7] }}</option>
+              <input type="hidden" value={{ currentBracket[7] }} name="winner_second_semifinal">
+              <li class="game game-bottom winner"> {{ currentBracket[7] }} <span></span></li>
             {% elif currentBracket[9] == currentBracket[6] %}
-              <option value={{ currentBracket[6] }} selected>{{ currentBracket[6] }}</option>
-              <option value={{ currentBracket[7] }}>{{ currentBracket[7] }}</option>
+              <input type="hidden" value={{ currentBracket[6] }} name="winner_second_semifinal">
+              <li class="game game-bottom winner"> {{ currentBracket[6] }} <span></span></li>
             {% endif %}
-          </select>
         {% else %}
           <input type="hidden" value='TBD' name="winner_second_semifinal">
           <li class="game game-bottom">{{ currentBracket[9] }}<span></span></li>
@@ -274,22 +276,22 @@
       <ul class="round round-5">
         <li class="spacer">&nbsp;</li>
           {% if currentBracket[8] != 'TBD' and currentBracket[9] != 'TBD' %}
-            <select name="winner_final">
-              {% if currentBracket[10] == 'TBD' %}
+            {% if currentBracket[10] == 'TBD' %}
+              <select name="winner_final">
                 <option selected value="TBD">TBD</option>
                 <option value={{ currentBracket[8] }} >{{ currentBracket[8] }}</option>
                 <option value={{ currentBracket[9] }} >{{ currentBracket[9] }}</option>
-              {% elif currentBracket[10] == currentBracket[9] %}
-                <option value={{ currentBracket[8] }} >{{ currentBracket[8] }}</option>
-                <option value={{ currentBracket[9] }} selected>{{ currentBracket[9] }}</option>
-              {% elif currentBracket[10] == currentBracket[8] %}
-                <option value={{ currentBracket[8] }} selected>{{ currentBracket[8] }}</option>
-                <option value={{ currentBracket[9] }}>{{ currentBracket[9] }}</option>
-              {% endif %}
-            </select>
+              </select>
+            {% elif currentBracket[10] == currentBracket[9] %}
+              <input type="hidden" value={{ currentBracket[9] }} name="winner_final">
+              <li class="game winner"> {{ currentBracket[9] }} <span></span></li>
+            {% elif currentBracket[10] == currentBracket[8] %}
+              <input type="hidden" value={{ currentBracket[8] }} name="winner_final">
+              <li class="game winner"> {{ currentBracket[8] }} <span></span></li>
+            {% endif %}
           {% else %}
             <input type="hidden" value='TBD' name="winner_final">
-            <p>&nbsp;{{ currentBracket[10] }}</p>
+            <li class="game"> {{ currentBracket[10] }} <span></span></li>
           {% endif %}
         
         <li class="spacer">&nbsp;</li>

@@ -26,12 +26,12 @@
 
   {% if challengeRestrictionEnabled == 1 %}
     <form action="admin" method="post">
-      <p>Restriction is turned on.</p>
+      <p>Restriction is currently turned on.</p>
       <input type="submit" name='action' value="Turn off challenge restriction">
     </form>
   {% else %}
     <form action="admin" method="post">
-      <p>Restriction is turned off.</p>
+      <p>Restriction is currently turned off.</p>
       <input type="submit" name='action' value="Turn on challenge restriction">
     </form>
   {% endif %}

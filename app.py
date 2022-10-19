@@ -578,7 +578,7 @@ def signup():
             addUser(username, email)
             #flash(f"Confirmation email has been sent to {email}!", "info")
             flash(f"Account is created for {username}!", "info")
-            return redirect(url_for("home"))
+            return render_template("index.html")
         else:                                                               # if username or email already exists
             flash(f"This username or email already exists.", "info")
             return render_template("signup.html")

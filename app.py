@@ -571,11 +571,13 @@ def signup():
             return render_template("signup.html")
 
         if (not isExistingUser(username, email)):                           # if there is no existing user, send a confirmation email.
-            session["user"] = username                                      # when the user clicks on the link, the user will be added.
-            session["email"] = email
-            session["temporary"] = True
-            sendConfirmationEmail(username, email)
-            flash(f"Confirmation email has been sent to {email}!", "info")
+            #session["user"] = username                                      # when the user clicks on the link, the user will be added.
+            #session["email"] = email
+            #session["temporary"] = True
+            #sendConfirmationEmail(username, email)
+            addUser(username, email)
+            #flash(f"Confirmation email has been sent to {email}!", "info")
+            flash(f"Account is created for {username}!", "info")
             return redirect(url_for("home"))
         else:                                                               # if username or email already exists
             flash(f"This username or email already exists.", "info")
@@ -992,7 +994,7 @@ def logout():
 if __name__ == "__main__":
     #db.drop_all()        #DO NOT use this except Fred
     #db.create_all()      #DO NOT use this except Fred
-    #port = int(os.environ.get('PORT', 7000))  #PROD
-    #app.run(debug=True, port = port)          #PROD
-    app.run(debug=True, port = 8000)         #LOCAL
+    port = int(os.environ.get('PORT', 7000))  #PROD
+    app.run(debug=True, port = port)          #PROD
+    #app.run(debug=True, port = 8000)         #LOCAL
     #print("test")

@@ -454,7 +454,7 @@ def getBracket():
 @app.route("/")
 def home():
     # main landing page; renders the main page if logged in, login page otherwise.
-    if "user" in session and session["temporary"] == False:
+    if "user" in session:
         return redirect(url_for("main"))
     else:
         return render_template("index.html")

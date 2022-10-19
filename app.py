@@ -454,7 +454,7 @@ def getBracket():
 @app.route("/")
 def home():
     # main landing page; renders the main page if logged in, login page otherwise.
-    if "user" in session:
+    if "user" in session and session["temporary"] == False:
         return redirect(url_for("main"))
     else:
         return render_template("index.html")
@@ -473,6 +473,7 @@ def login():
             session.permanent = True
             session["user"] = username
             session["email"] = email
+            session["temporary"] = False
             flash("Login Successful!")
             return redirect(url_for("main"))
 
@@ -545,6 +546,8 @@ def adminLogin():
         else:                                                       # when the user does exist
             session.permanent = True
             session["user"] = username
+            session["email"] = None
+            session["temporary"] = False
             flash("Login Successful!")
             return redirect(url_for("main"))
 
@@ -635,6 +638,7 @@ def admin():
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
         challengeRestrictionEnabled = getchallengeRestrictionEnabled()
+        currentUsers = getAllUsers()
         if request.method == "GET":
             if username == 'admin':
                 return render_template("admin.html",
@@ -700,6 +704,12 @@ def admin():
                                         challengeRestrictionEnabled=challengeRestrictionEnabled)
             elif request.form['action'] == 'Delete':
                 username = request.form['userToDelete']
+                if username not in currentUsers:
+                    flash("{} doesn't exist.".format(username))
+                    return render_template("admin.html",
+                                            isRankedEnabled=isRankedEnabled,
+                                            leaderBoardHeader=leaderBoardHeader,
+                                            challengeRestrictionEnabled=challengeRestrictionEnabled)
                 if Users.query.filter_by(username=username).first().isParticipatingLeague == 1:
                     updateLeagueParticipation(username,0)
                 deleteUser(username)
@@ -724,6 +734,26 @@ def admin():
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
                                         challengeRestrictionEnabled=challengeRestrictionEnabled)
+            elif request.form['action'] == 'Swap':
+                firstUser = request.form['firstUser']
+                secondUser = request.form['secondUser']
+                if firstUser not in currentUsers or secondUser not in currentUsers:
+                    flash("One or more user(s) doesn't exist.".format(firstUser,secondUser))
+                    return render_template("admin.html",
+                                            isRankedEnabled=isRankedEnabled,
+                                            leaderBoardHeader=leaderBoardHeader,
+                                            challengeRestrictionEnabled=challengeRestrictionEnabled)
+                firstUserRank = Users.query.filter_by(username=firstUser).first().rank
+                secondUserRank = Users.query.filter_by(username=secondUser).first().rank
+                if firstUserRank > secondUserRank:
+                    swapRankings(firstUser,secondUser,1,0)
+                else:
+                    swapRankings(firstUser,secondUser,0,1)
+                flash("Rank is swapped for {} and {}.".format(firstUser,secondUser))
+                return render_template("admin.html",
+                                        isRankedEnabled=isRankedEnabled,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled)        
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -962,7 +992,7 @@ def logout():
 if __name__ == "__main__":
     #db.drop_all()        #DO NOT use this except Fred
     #db.create_all()      #DO NOT use this except Fred
-    port = int(os.environ.get('PORT', 7000))  #PROD
-    app.run(debug=True, port = port)          #PROD
-    #app.run(debug=True, port = 8000)         #LOCAL
+    #port = int(os.environ.get('PORT', 7000))  #PROD
+    #app.run(debug=True, port = port)          #PROD
+    app.run(debug=True, port = 8000)         #LOCAL
     #print("test")

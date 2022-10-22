@@ -449,6 +449,11 @@ def getBracket():
             Admin.query.filter_by(username='admin').first().winner_first_semifinal,Admin.query.filter_by(username='admin').first().winner_second_semifinal,
             Admin.query.filter_by(username='admin').first().winner_final,Admin.query.filter_by(username='admin').first().winner_third_fourth]
 
+def validateUsername(username):
+    if ' ' in username:
+        return False
+    return True
+
 '''Below are the Functions that interact with frontEnd directly'''
 
 @app.route("/")
@@ -566,7 +571,7 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         email = request.form["email"]
-        if ' ' in username:
+        if not validateUsername(username):
             flash(f"Username must not contain space!", "info")
             return render_template("signup.html")
 
@@ -575,6 +580,9 @@ def signup():
             #session["email"] = email
             #session["temporary"] = True
             #sendConfirmationEmail(username, email)
+            if 'nlsnow.com' not in email.lower():
+                flash(f"Email must be from NLS!", "info")
+                return render_template("signup.html")
             addUser(username, email)
             #flash(f"Confirmation email has been sent to {email}!", "info")
             flash(f"Account is created for {username}!", "info")
@@ -626,6 +634,31 @@ def profile():
                 return redirect(url_for("profile"))
             elif request.form['action'] == 'Leave the League':                                         
                 updateLeagueParticipation(username, 0)
+                return redirect(url_for("profile"))
+            elif request.form['action'] == 'Update Username':
+                newUsername = request.form['newUsername']
+                if not validateUsername(username):
+                    flash(f"Username must not contain space!", "info")
+                    return redirect(url_for("profile"))
+                session.pop("user", None)
+                session["user"] = newUsername
+                for queue in getCurrentQueue():
+                    if queue[0] == username:
+                        Queue.query.filter_by(id=queue[2]).first().firstUser = newUsername
+                    elif queue[1] == username:
+                        Queue.query.filter_by(id=queue[2]).first().secondUser = newUsername
+                Users.query.filter_by(username=username).first().username = newUsername
+                db.session.commit()
+                flash("Username is updated.")
+                return redirect(url_for("profile"))
+            elif request.form['action'] == 'Update Email':
+                newEmail = request.form['newEmail']
+                if 'nlsnow.com' not in newEmail.lower():
+                    flash(f"Email must be from NLS!", "info")
+                    return redirect(url_for("profile"))
+                Users.query.filter_by(username=username).first().email = newEmail
+                db.session.commit()
+                flash("Email is updated.")
                 return redirect(url_for("profile"))
     else:
         flash("You are not logged in!")

@@ -105,7 +105,19 @@
         {% endif %}
         <hr class="border-secondary">
       </section>
-
+      <div>
+        <form action="{{ url_for('profile') }}" method="post">
+          <label><strong>Enter new username: </strong>&nbsp;</label>
+          <input type="text" name="newUsername" /><br>
+          <input type="submit" name='action' value="Update Username">
+        </form>
+      <hr class="border-secondary">
+        <form action="{{ url_for('profile') }}" method="post">
+          <label><strong>Enter new email: </strong>&nbsp;</label>
+          <input type="email" name="newEmail" /><br>
+          <input type="submit" name='action' value="Update Email">
+        </form>
+      </div>
     </div>
 
 

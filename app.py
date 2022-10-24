@@ -674,12 +674,15 @@ def admin():
         leaderBoardHeader = getCurrentLeaderBoardHeader()
         challengeRestrictionEnabled = getchallengeRestrictionEnabled()
         currentUsers = getAllUsers()
+        currentRankUsers = getCurrentLeaderBoard()
         if request.method == "GET":
             if username == 'admin':
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             else:
                 return redirect(url_for("home"))
         if request.method == "POST":
@@ -690,7 +693,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Turn on ranked game mode':
                 updateIsRankedEnabled(1)
                 isRankedEnabled = getIsRankedEnabled()
@@ -698,7 +703,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
 
             elif request.form['action'] == 'Turn off challenge restriction':
                 updatechallengeRestrictionEnabled(0)
@@ -707,7 +714,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Turn on challenge restriction':
                 updatechallengeRestrictionEnabled(1)
                 challengeRestrictionEnabled = getchallengeRestrictionEnabled()
@@ -715,7 +724,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Submit':
                 if request.form['newHeader'] != '':
                     updateCurrentLeaderBoardHeader(request.form['newHeader'])
@@ -723,7 +734,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Add':
                 if request.form['username'] != '' and request.form['email'] != '':
                     username = request.form['username']
@@ -736,7 +749,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Delete':
                 username = request.form['userToDelete']
                 if username not in currentUsers:
@@ -744,7 +759,9 @@ def admin():
                     return render_template("admin.html",
                                             isRankedEnabled=isRankedEnabled,
                                             leaderBoardHeader=leaderBoardHeader,
-                                            challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                            challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                            currentUsers=currentUsers,
+                                            currentRankUsers=currentRankUsers)
                 if Users.query.filter_by(username=username).first().isParticipatingLeague == 1:
                     updateLeagueParticipation(username,0)
                 deleteUser(username)
@@ -752,7 +769,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Reset ranked game participations':
                 currentRankUsers = getCurrentLeaderBoard()[::-1]
                 for user in currentRankUsers:
@@ -761,23 +780,37 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Reset bracket':
                 resetBracket()
                 flash("Bracket is cleared.")
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)
             elif request.form['action'] == 'Swap':
                 firstUser = request.form['firstUser']
                 secondUser = request.form['secondUser']
                 if firstUser not in currentUsers or secondUser not in currentUsers:
-                    flash("One or more user(s) doesn't exist.".format(firstUser,secondUser))
+                    flash("One or more user(s) doesn't exist.")
                     return render_template("admin.html",
                                             isRankedEnabled=isRankedEnabled,
                                             leaderBoardHeader=leaderBoardHeader,
-                                            challengeRestrictionEnabled=challengeRestrictionEnabled)
+                                            challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                            currentUsers=currentUsers,
+                                            currentRankUsers=currentRankUsers)
+                if firstUser == secondUser:
+                    flash("Can't swap the same user.")
+                    return render_template("admin.html",
+                                            isRankedEnabled=isRankedEnabled,
+                                            leaderBoardHeader=leaderBoardHeader,
+                                            challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                            currentUsers=currentUsers,
+                                            currentRankUsers=currentRankUsers)
                 firstUserRank = Users.query.filter_by(username=firstUser).first().rank
                 secondUserRank = Users.query.filter_by(username=secondUser).first().rank
                 if firstUserRank > secondUserRank:
@@ -788,7 +821,9 @@ def admin():
                 return render_template("admin.html",
                                         isRankedEnabled=isRankedEnabled,
                                         leaderBoardHeader=leaderBoardHeader,
-                                        challengeRestrictionEnabled=challengeRestrictionEnabled)        
+                                        challengeRestrictionEnabled=challengeRestrictionEnabled,
+                                        currentUsers=currentUsers,
+                                        currentRankUsers=currentRankUsers)        
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))

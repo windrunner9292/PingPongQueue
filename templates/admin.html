@@ -13,12 +13,12 @@
 
   {% if isRankedEnabled == 1 %}
     <form action="admin" method="post">
-      <p>Ranked game mode is currently turned on.</p>
+      <p><strong>Ranked game mode is currently turned on.</strong></p>
       <input type="submit" name='action' value="Turn off ranked game mode">
     </form>
   {% else %}
     <form action="admin" method="post">
-      <p>Ranked game mode is currently turned off.</p>
+      <p><strong>Ranked game mode is currently turned off.</strong></p>
       <input type="submit" name='action' value="Turn on ranked game mode">
     </form>
   {% endif %}
@@ -26,43 +26,67 @@
 
   {% if challengeRestrictionEnabled == 1 %}
     <form action="admin" method="post">
-      <p>Restriction is currently turned on.</p>
+      <p><strong>Restriction is currently turned on.</strong></p>
       <input type="submit" name='action' value="Turn off challenge restriction">
     </form>
   {% else %}
     <form action="admin" method="post">
-      <p>Restriction is currently turned off.</p>
+      <p><strong>Restriction is currently turned off.</strong></p>
       <input type="submit" name='action' value="Turn on challenge restriction">
     </form>
   {% endif %}
   <hr>
 
   <form action="admin" method="post">
-    Enter new Username : &nbsp;<input type="text" name="username" /><br>
-    Enter new Email : &nbsp;<input type="text" name="email" /><br>
+    <strong>Enter new Username : </strong>&nbsp;<input type="text" name="username" /><br>
+    <strong>Enter new Email : </strong>&nbsp;<input type="text" name="email" /><br>
   <input type="submit" name='action' value="Add">
   </form>
   <hr>
 
   <form action="admin" method="post">
-    Enter the username to delete : &nbsp;<input type="text" name="userToDelete" /><br>
+    <div>
+      <label for="playerToDelete"><strong>Player to delete: </strong></label>
+      <input id="players-list-container" list="players-list" name="userToDelete">
+      <datalist id="players-list">
+        {% for user in currentUsers %}
+          <option value= {{ user }}>{{ user }}</option>
+        {% endfor %}
+      </datalist>
+    </div>
   <input type="submit" name='action' value="Delete">
   </form>
   <hr>
 
   <form action="admin" method="post">
-    First player : &nbsp;<input type="text" name="firstUser" /><br>
-    Second player : &nbsp;<input type="text" name="secondUser" /><br>
+    <div>
+      <label for="firstPlayer"><strong>First player: </strong></label>
+      <input id="players-list-container" list="first-players-list" name="firstUser">
+      <datalist id="first-players-list">
+        {% for user in currentRankUsers %}
+          <option value= {{ user[0] }}>{{ user[0] }}</option>
+        {% endfor %}
+      </datalist>
+    </div>
+    <div>
+      <label for="secondPlayer"><strong>Second player: </strong></label>
+      <input id="players-list-container" list="second-players-list" name="secondUser">
+      <datalist id="second-players-list">
+        {% for user in currentRankUsers %}
+          <option value= {{ user[0] }}>{{ user[0] }}</option>
+        {% endfor %}
+      </datalist>
+    </div>
   <input type="submit" name='action' value="Swap">
   </form>
   <hr>
 
   <form action="admin" method="post">
-    Enter the new leaderboard header : &nbsp;<input type="text" name="newHeader" /><br>
+    <strong>Enter the new leaderboard header : </strong>&nbsp;<input type="text" name="newHeader" /><br>
   <input type="submit" name='action' value="Submit">
   </form>
   <hr>
-
+ 
   <form action="admin" method="post">
     <input type="submit" name='action' value="Reset bracket">
   </form>

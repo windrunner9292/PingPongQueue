@@ -20,10 +20,10 @@
 <p hidden><span id="remainingTimeValue">{{ remainingTime }}</span></p>
 {% if currentQueue|length == 0 or currentQueue[0][5] == 1 %}
   <p hidden class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
-{% elif remainingTime < 85000 %}
+{% elif currentQueue|length != 0 and matchOver == False and matchExpired == False %}  
   <p class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
-{% elif remainingTime >= 85000 and currentQueue|length != 0 %}
-  <p class="sub-headers">Current game is over. Please proceed to the next game.</span></p>
+{% elif currentQueue|length != 0 and matchOver == True and matchExpired == False  %}
+  <p class="sub-headers">Current game is over. Automatically proceeding to the next game in <span style="color:red">5 minutes</span>.</p>
   <p hidden class="sub-headers">Remaining time: <span id="remainingTime" style="color:red; font-weight: bold;"></span></p>
 {% endif %}
 

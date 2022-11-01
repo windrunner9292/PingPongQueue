@@ -358,10 +358,20 @@ def resetCurrentTimeQueueEndTimeDiffInSeconds():
     Queue.query.filter_by(id=firstQueue[2], firstUser=firstQueue[0], secondUser=firstQueue[1]).first().QueueEndTime = datetime.datetime.now()+timedelta(minutes=PLAYTIME)
     db.session.commit()
 
+def isMatchOver():
+    # indicates if allocated 25min is exhausted.
+    if len(getCurrentQueue()) == 0 or (getCurrentQueue()[0][4] - datetime.datetime.now()).days == -1:
+        return True
+    return False
+
 def isMatchExpired():
+    # indicates if 5min is elapsed after the match is over.
     if len(getCurrentQueue()) == 0:
         return False
-    return True if (getCurrentQueue()[0][4] - datetime.datetime.now()).days == -1 else False
+    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=1)
+    expirationHour, expirationMin = expirationTime.hour, expirationTime.minute
+    currentHour, currentMin = datetime.datetime.now().hour, datetime.datetime.now().minute
+    return True if expirationHour == currentHour and expirationMin == currentMin else False
 
 def update_winner_eight_nine(username):
     Admin.query.filter_by(username='admin').first().winner_eight_nine = username
@@ -865,32 +875,36 @@ def redirectMainGetRequest():
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
         remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
+        matchOver = isMatchOver()
         matchExpired = isMatchExpired()
-        """ if matchExpired:
-                firstCurrentPlayer = currentQueue[0][0]
-                secondCurrentPlayer = currentQueue[0][1]
-                queueID = currentQueue[0][2]
-                currentQueue = getCurrentQueue()
-                currentQueueSize = len(currentQueue)
-                deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
-                currentQueue = getCurrentQueue()
-                if(currentQueueSize != 1):
-                        flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
-                        sendNotificationEmail(0)
-                        return redirect(url_for("main",
-                                            currentUsers=currentUsers,
-                                            currentQueue=currentQueue,
-                                            currentRankUsers=currentRankUsers,
-                                            leaderBoardHeader=leaderBoardHeader,
-                                            isRankedEnabled=isRankedEnabled,
-                                            remainingTime=remainingTime)) """
+        if matchExpired:
+            firstCurrentPlayer = currentQueue[0][0]
+            secondCurrentPlayer = currentQueue[0][1]
+            queueID = currentQueue[0][2]
+            deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
+            currentQueue = getCurrentQueue()
+            resetCurrentTimeQueueEndTimeDiffInSeconds()
+            if len(currentQueue) != 0:
+                flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                sendNotificationEmail(0)
+            return redirect(url_for("main",
+                            currentUsers=currentUsers,
+                            currentQueue=currentQueue,
+                            currentRankUsers=currentRankUsers,
+                            leaderBoardHeader=leaderBoardHeader,
+                            isRankedEnabled=isRankedEnabled,
+                            remainingTime=remainingTime,
+                            matchExpired=matchExpired,
+                            matchOver=matchOver))
         return render_template("main.html", 
                     currentUsers=currentUsers,
                     currentQueue=currentQueue,
                     currentRankUsers=currentRankUsers,
                     leaderBoardHeader=leaderBoardHeader,
                     isRankedEnabled=isRankedEnabled,
-                    remainingTime=remainingTime)
+                    remainingTime=remainingTime,
+                    matchExpired=matchExpired,
+                    matchOver=matchOver)
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -906,6 +920,27 @@ def main():
         leaderBoardHeader = getCurrentLeaderBoardHeader()
         currentQueue = getCurrentQueue()
         remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
+        matchOver = isMatchOver()
+        matchExpired = isMatchExpired()
+        if matchExpired:
+            firstCurrentPlayer = currentQueue[0][0]
+            secondCurrentPlayer = currentQueue[0][1]
+            queueID = currentQueue[0][2]
+            deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
+            currentQueue = getCurrentQueue()
+            resetCurrentTimeQueueEndTimeDiffInSeconds()
+            if len(currentQueue) != 0:
+                flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
+                sendNotificationEmail(0)
+            return redirect(url_for("main",
+                            currentUsers=currentUsers,
+                            currentQueue=currentQueue,
+                            currentRankUsers=currentRankUsers,
+                            leaderBoardHeader=leaderBoardHeader,
+                            isRankedEnabled=isRankedEnabled,
+                            remainingTime=remainingTime,
+                            matchExpired=matchExpired,
+                            matchOver=matchOver))
         if request.method == "POST":
             if request.form['action'] == 'Submit':                                      # button for adding the match to the queue
                 firstPlayer = request.form["firstPlayer"]
@@ -921,7 +956,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
                 if firstPlayer == secondPlayer:                                         # when accidentally adding same players
                     flash("You can't play yourself!", "error")
                     currentQueue = getCurrentQueue()
@@ -931,7 +968,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
                 if firstPlayer not in currentUsers or secondPlayer not in currentUsers:                 # when accidentally adding unregistered user
                     flash("Unregistered user.", "error")
                     currentQueue = getCurrentQueue()
@@ -941,7 +980,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
                 if (isRankedMatch):
                     addQueue(firstPlayer, secondPlayer, 1, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
                 elif (not isRankedMatch and isTournamentGame):
@@ -955,7 +996,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
             elif request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
@@ -979,7 +1022,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
                 #if (currentQueue[0][3]==1):                                                 # if the match is ranked:
                 if (not firstWins and not secondWins):
                     flash("Winner must be chosen!",'error')
@@ -989,7 +1034,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
                 elif (firstWins and secondWins):
                     flash("There can only be one winner!",'error')
                     return redirect(url_for("main",
@@ -998,7 +1045,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
                 else:
                     if (currentQueue[0][3]==1):
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
@@ -1027,7 +1076,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))
             elif request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
@@ -1040,7 +1091,9 @@ def main():
                                         currentRankUsers=currentRankUsers,
                                         leaderBoardHeader=leaderBoardHeader,
                                         isRankedEnabled=isRankedEnabled,
-                                        remainingTime=remainingTime))       
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver))       
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:

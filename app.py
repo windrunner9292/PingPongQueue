@@ -368,7 +368,7 @@ def isMatchExpired():
     # indicates if 5min is elapsed after the match is over.
     if len(getCurrentQueue()) == 0:
         return False
-    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=1)
+    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=5)
     expirationHour, expirationMin = expirationTime.hour, expirationTime.minute
     currentHour, currentMin = datetime.datetime.now().hour, datetime.datetime.now().minute
     return True if expirationHour == currentHour and expirationMin == currentMin else False

@@ -49,7 +49,8 @@ TokenTimer = 300
 
 db = SQLAlchemy(app)
 mail = Mail(app)
-PLAYTIME = 1  #in min
+PLAYTIME = 25  #in min
+EXPIRE_TIME = 5 #in min
 TIME_OFFSET = timedelta(hours=5)  # Heroku uses UCT.
 
 class Users(db.Model):
@@ -377,7 +378,7 @@ def isMatchExpired():
     # indicates if 5min is elapsed after the match is over.
     if len(getCurrentQueue()) == 0:
         return False
-    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=1)
+    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=EXPIRE_TIME)
     expirationHour, expirationMin = expirationTime.hour, expirationTime.minute
     currentHour, currentMin = datetime.datetime.now().hour, datetime.datetime.now().minute
     return True if expirationHour == currentHour and expirationMin == currentMin else False

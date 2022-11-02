@@ -941,10 +941,11 @@ def redirectMainGetRequest():
         remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
         matchOver = isMatchOver()
         matchExpired = isMatchExpired()
-        if matchExpired:
+        if matchExpired and currentQueue[0][5] != 1:
             firstCurrentPlayer = currentQueue[0][0]
             secondCurrentPlayer = currentQueue[0][1]
             queueID = currentQueue[0][2]
+            addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
             deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
             currentQueue = getCurrentQueue()
             resetCurrentTimeQueueEndTimeDiffInSeconds()
@@ -986,10 +987,11 @@ def main():
         remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
         matchOver = isMatchOver()
         matchExpired = isMatchExpired()
-        if matchExpired:
+        if matchExpired and currentQueue[0][5] != 1:
             firstCurrentPlayer = currentQueue[0][0]
             secondCurrentPlayer = currentQueue[0][1]
             queueID = currentQueue[0][2]
+            addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
             deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
             currentQueue = getCurrentQueue()
             resetCurrentTimeQueueEndTimeDiffInSeconds()

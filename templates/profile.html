@@ -116,9 +116,9 @@
         {% for history in matchHistory %}
           <tr>
             <td>{{ history[1] }}</td>
-            {% if  history[2] == 'Match not recorded' %}
+            {% if history[2] == 'Match expired' or history[2] == 'Match not recorded' %}
               <td><span style="font-weight: bold;">{{ history[2] }}</span></td>
-            {% elif  history[2] == 'W' %}
+            {% elif history[2] == 'W' %}
               <td><span style="color:blue; font-weight: bold;">W</span></td>
             {% else %}
               <td><span style="color:red; font-weight: bold;">L</span></td>

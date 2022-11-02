@@ -7,7 +7,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 import datetime
 from datetime import timedelta
 
-""" # LOCAL configs
+# LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
 with open(path) as f:
     confidential_info = [str(content.strip()) for content in f.readlines()]
@@ -29,9 +29,9 @@ app.config['MAIL_USERNAME'] = confidential_info[0]
 app.config['MAIL_PASSWORD'] = confidential_info[1]
 app.config['SECRET_KEY'] = confidential_info[2]
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300 """
+TokenTimer = 300
 
-# PROD configs
+""" # PROD configs
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DBCONNECTION']
@@ -45,11 +45,11 @@ app.config['MAIL_USERNAME'] = os.environ['MAILUSERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAILPASSWORD']
 app.config['SECRET_KEY'] = os.environ['SECRETKEY']
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-TokenTimer = 300
+TokenTimer = 300 """
 
 db = SQLAlchemy(app)
 mail = Mail(app)
-PLAYTIME = 25  #in min
+PLAYTIME = 1  #in min
 TIME_OFFSET = timedelta(hours=5)  # Heroku uses UCT.
 
 class Users(db.Model):
@@ -377,7 +377,7 @@ def isMatchExpired():
     # indicates if 5min is elapsed after the match is over.
     if len(getCurrentQueue()) == 0:
         return False
-    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=5)
+    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=1)
     expirationHour, expirationMin = expirationTime.hour, expirationTime.minute
     currentHour, currentMin = datetime.datetime.now().hour, datetime.datetime.now().minute
     return True if expirationHour == currentHour and expirationMin == currentMin else False
@@ -488,11 +488,15 @@ def getHistory(user):
         if (history.firstUser == user):
             if (history.winner == "Match not recorded"):
                 records.append((history.id, history.secondUser, "Match not recorded", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+            elif (history.winner == "Match expired"):
+                records.append((history.id, history.secondUser, "Match expired", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
             else:
                 records.append((history.id, history.secondUser, 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
         if (history.secondUser == user):
             if (history.winner == "Match not recorded"):
                 records.append((history.id, history.firstUser, "Match not recorded", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+            elif (history.winner == "Match expired"):
+                records.append((history.id, history.firstUser, "Match expired", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
             else:
                 records.append((history.id, history.firstUser , 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
     return records
@@ -1186,7 +1190,7 @@ def logout():
 if __name__ == "__main__":
     #db.drop_all()        #DO NOT use this except Fred
     #db.create_all()      #DO NOT use this except Fred
-    port = int(os.environ.get('PORT', 7000))  #PROD
-    app.run(debug=True, port = port)          #PROD
-    #app.run(debug=True, port = 8000)         #LOCAL
+    #port = int(os.environ.get('PORT', 7000))  #PROD
+    #app.run(debug=True, port = port)          #PROD
+    app.run(debug=True, port = 8000)         #LOCAL
     #print("test")

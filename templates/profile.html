@@ -105,6 +105,31 @@
         {% endif %}
         <hr class="border-secondary">
       </section>
+      {% if matchHistory|length != 0  %}
+      <table class="center" style="width:100%">
+        <tr>
+          <th>Opponent</th>
+          <th>Result</th>
+          <th>Match Type</th>
+          <th>Match Time</th>
+        </tr>
+        {% for history in matchHistory %}
+          <tr>
+            <td>{{ history[1] }}</td>
+            {% if  history[2] == 'Match not recorded' %}
+              <td><span style="font-weight: bold;">{{ history[2] }}</span></td>
+            {% elif  history[2] == 'W' %}
+              <td><span style="color:blue; font-weight: bold;">W</span></td>
+            {% else %}
+              <td><span style="color:red; font-weight: bold;">L</span></td>
+            {% endif %}
+            <td>{{ history[3] }}</td>
+            <td>{{ history[4] }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+      <hr class="border-secondary">
       <div>
         <form action="{{ url_for('profile') }}" method="post">
           <label><strong>Enter new username: </strong>&nbsp;</label>

@@ -16,10 +16,6 @@ path = os.path.join(os.path.dirname(__file__), 'players.txt')
 with open(path) as f:
     user_info = [content.split(",") for content in f.readlines()]
 
-path = os.path.join(os.path.dirname(__file__), 'players_ranked.txt')
-with open(path) as f:
-    ranked_user_info = [content.split(",") for content in f.readlines()]
-
 app = Flask(__name__)
 app.permanent_session_lifetime = timedelta(days=5)
 app.config['SQLALCHEMY_DATABASE_URI'] = confidential_info[3]
@@ -54,6 +50,7 @@ TokenTimer = 300
 db = SQLAlchemy(app)
 mail = Mail(app)
 PLAYTIME = 25  #in min
+TIME_OFFSET = timedelta(hours=5)  # Heroku uses UCT.
 
 class Users(db.Model):
     # Users table definition
@@ -113,6 +110,18 @@ class Admin(db.Model):
 
     def __repr__(self):
         return f"User('{self.username}')"
+
+class History(db.Model):
+    # History table definition
+    id = db.Column(db.Integer, primary_key=True)
+    firstUser = db.Column(db.String(20), nullable=False)
+    secondUser = db.Column(db.String(20), nullable=False)
+    winner = db.Column(db.String(20), nullable=False)
+    matchType = db.Column(db.String(20), nullable=False)
+    matchEndTime = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return f"User('{self.firstUser}, {self.secondUser}, {self.winner}, {self.matchType}, {self.matchEndTime}')"
 
 def isExistingUser(username, email):
     # used for the user entry check in the db
@@ -464,6 +473,43 @@ def validateUsername(username):
         return False
     return True
 
+def addHistory(firstUser, secondUser, winner, matchType, matchEndTime):
+    matchRecord = History(firstUser=firstUser,
+                          secondUser=secondUser,
+                          winner=winner,
+                          matchType=matchType,
+                          matchEndTime=matchEndTime)
+    db.session.add(matchRecord)
+    db.session.commit()
+
+def getHistory(user):
+    records = []
+    for history in History.query.all():
+        if (history.firstUser == user):
+            if (history.winner == "Match not recorded"):
+                records.append((history.id, history.secondUser, "Match not recorded", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+            else:
+                records.append((history.id, history.secondUser, 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+        if (history.secondUser == user):
+            if (history.winner == "Match not recorded"):
+                records.append((history.id, history.firstUser, "Match not recorded", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+            else:
+                records.append((history.id, history.firstUser , 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+    return records
+
+def getHistoryForReconcile(user):
+    records = []
+    for history in History.query.all():
+        if (history.firstUser == user or history.secondUser == user):
+            records.append((history.id, history.firstUser, history.secondUser,history.winner))
+    return records
+
+def getCurrentQueue():
+    # returns the current users in the table
+    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime, queue.isTournamentMatch) for queue in Queue.query.all()]
+    currentQueue.sort(key=lambda x:x[2])
+    return currentQueue
+
 '''Below are the Functions that interact with frontEnd directly'''
 
 @app.route("/")
@@ -611,6 +657,8 @@ def signup():
 def profile():
     if "user" in session:
         username = session["user"]
+        matchHistory = getHistory(username)
+        matchHistoryForCorrection = getHistoryForReconcile(username)
         isUserParticipatingLeague = getCurrentUserParticipationStatus(username)
         if request.method == "GET":                                                         # grabs the statistic info and displays it
                 streakFlag_normal = Users.query.filter_by(username=username).first().lastResult_normal
@@ -637,7 +685,8 @@ def profile():
                                                     streak_ranked=streak_ranked,
                                                     wins_ranked=wins_ranked,
                                                     losses_ranked=losses_ranked,
-                                                    winRate_ranked=winRate_ranked)
+                                                    winRate_ranked=winRate_ranked,
+                                                    matchHistory=matchHistory)
         elif request.method == "POST":
             if request.form['action'] == 'Join the League':                        
                 updateLeagueParticipation(username, 1)
@@ -647,6 +696,9 @@ def profile():
                 return redirect(url_for("profile"))
             elif request.form['action'] == 'Update Username':
                 newUsername = request.form['newUsername']
+                if newUsername == "":
+                    flash(f"Enter the username please.", "info")
+                    return redirect(url_for("profile"))
                 if not validateUsername(username):
                     flash(f"Username must not contain space!", "info")
                     return redirect(url_for("profile"))
@@ -657,12 +709,24 @@ def profile():
                         Queue.query.filter_by(id=queue[2]).first().firstUser = newUsername
                     elif queue[1] == username:
                         Queue.query.filter_by(id=queue[2]).first().secondUser = newUsername
-                Users.query.filter_by(username=username).first().username = newUsername
+                Users.query.filter_by(username=username).first().username = newUsername   
+                for history in matchHistoryForCorrection:
+                    if history[1] == username:
+                        History.query.filter_by(id=history[0]).first().firstUser = newUsername 
+                        if history[3] == username:
+                            History.query.filter_by(id=history[0]).first().winner = newUsername
+                    elif history[2] == username:
+                        History.query.filter_by(id=history[0]).first().secondUser = newUsername  
+                        if history[3] == username:
+                            History.query.filter_by(id=history[0]).first().winner = newUsername         
                 db.session.commit()
                 flash("Username is updated.")
                 return redirect(url_for("profile"))
             elif request.form['action'] == 'Update Email':
                 newEmail = request.form['newEmail']
+                if newEmail == "":
+                    flash(f"Enter the email please.", "info")
+                    return redirect(url_for("profile"))
                 if 'nlsnow.com' not in newEmail.lower():
                     flash(f"Email must be from NLS!", "info")
                     return redirect(url_for("profile"))
@@ -1010,6 +1074,7 @@ def main():
                 currentQueue = getCurrentQueue()
                 currentQueueSize = len(currentQueue)
                 if dontRecordStatsChecked:
+                    addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match not recorded","League" if currentQueue[0][5] == 1 else "Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
                     deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                     currentQueue = getCurrentQueue()
                     resetCurrentTimeQueueEndTimeDiffInSeconds()
@@ -1052,16 +1117,20 @@ def main():
                     if (currentQueue[0][3]==1):
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
                         if firstWins:
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,firstCurrentPlayer,"Ranked",currentQueue[0][4]-TIME_OFFSET)
                             recordRankedStatistics(firstCurrentPlayer, 1)
                             recordRankedStatistics(secondCurrentPlayer, 0)
                         else:
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,secondCurrentPlayer,"Ranked",currentQueue[0][4]-TIME_OFFSET)
                             recordRankedStatistics(firstCurrentPlayer, 0)
                             recordRankedStatistics(secondCurrentPlayer, 1)
                     else:
                         if firstWins:
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,firstCurrentPlayer,"League" if currentQueue[0][5] == 1 else "Normal",currentQueue[0][4]-TIME_OFFSET)
                             recordNormalStatistics(firstCurrentPlayer, 1)
                             recordNormalStatistics(secondCurrentPlayer, 0)
                         else:
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,secondCurrentPlayer,"League" if currentQueue[0][5] == 1 else "Normal",currentQueue[0][4]-TIME_OFFSET)
                             recordNormalStatistics(firstCurrentPlayer, 0)
                             recordNormalStatistics(secondCurrentPlayer, 1)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)

@@ -487,19 +487,10 @@ def getHistory(user):
     records = []
     for history in History.query.all():
         if (history.firstUser == user):
-            if (history.winner == "Match not recorded"):
-                records.append((history.id, history.secondUser, "Match not recorded", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
-            elif (history.winner == "Match expired"):
-                records.append((history.id, history.secondUser, "Match expired", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
-            else:
-                records.append((history.id, history.secondUser, 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+            records.append((history.id, history.secondUser, 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
         if (history.secondUser == user):
-            if (history.winner == "Match not recorded"):
-                records.append((history.id, history.firstUser, "Match not recorded", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
-            elif (history.winner == "Match expired"):
-                records.append((history.id, history.firstUser, "Match expired", history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
-            else:
-                records.append((history.id, history.firstUser , 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+            records.append((history.id, history.firstUser , 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
+    records.sort(key=lambda x:x[0])
     return records
 
 def getHistoryForReconcile(user):
@@ -508,12 +499,6 @@ def getHistoryForReconcile(user):
         if (history.firstUser == user or history.secondUser == user):
             records.append((history.id, history.firstUser, history.secondUser,history.winner))
     return records
-
-def getCurrentQueue():
-    # returns the current users in the table
-    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime, queue.isTournamentMatch) for queue in Queue.query.all()]
-    currentQueue.sort(key=lambda x:x[2])
-    return currentQueue
 
 '''Below are the Functions that interact with frontEnd directly'''
 
@@ -950,7 +935,7 @@ def redirectMainGetRequest():
             firstCurrentPlayer = currentQueue[0][0]
             secondCurrentPlayer = currentQueue[0][1]
             queueID = currentQueue[0][2]
-            addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
+            #addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
             deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
             currentQueue = getCurrentQueue()
             resetCurrentTimeQueueEndTimeDiffInSeconds()
@@ -996,7 +981,7 @@ def main():
             firstCurrentPlayer = currentQueue[0][0]
             secondCurrentPlayer = currentQueue[0][1]
             queueID = currentQueue[0][2]
-            addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
+            #addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
             deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
             currentQueue = getCurrentQueue()
             resetCurrentTimeQueueEndTimeDiffInSeconds()
@@ -1081,7 +1066,7 @@ def main():
                 currentQueue = getCurrentQueue()
                 currentQueueSize = len(currentQueue)
                 if dontRecordStatsChecked:
-                    addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match not recorded","League" if currentQueue[0][5] == 1 else "Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
+                    #addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match not recorded","League" if currentQueue[0][5] == 1 else "Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
                     deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
                     currentQueue = getCurrentQueue()
                     resetCurrentTimeQueueEndTimeDiffInSeconds()

@@ -490,7 +490,7 @@ def getHistory(user):
             records.append((history.id, history.secondUser, 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
         if (history.secondUser == user):
             records.append((history.id, history.firstUser , 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
-    records.sort(key=lambda x:x[0])
+    records.sort(key=lambda x:x[0], reverse=True)
     return records
 
 def getHistoryForReconcile(user):

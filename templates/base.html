@@ -15,7 +15,9 @@
   <script type="text/JavaScript">
 
         function AutoRefresh( t ) {
-          setTimeout("location.reload(true);", t);
+          if (document.getElementsByTagName("title")[0].innerHTML == 'Dashboard'){
+            setTimeout("location.reload(true);", t);
+          }
         }
 
         function startTimer(duration,display) {
@@ -39,6 +41,14 @@
           var remainingTime = parseInt(document.getElementById('remainingTimeValue').innerHTML);
           display = document.querySelector('#remainingTime');
           startTimer(remainingTime, display);
+        }
+
+        function showHistory() {
+          var els = document.getElementsByClassName("hidden");
+          for(var i=0;i<els.length;i++){
+            els[i].style.display = "table-row"
+          }
+          document.getElementById("show-history-button").style.display="none";
         }
   </script>
 </head>

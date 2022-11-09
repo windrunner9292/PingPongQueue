@@ -106,26 +106,48 @@
         <hr class="border-secondary">
       </section>
       {% if matchHistory|length != 0  %}
-      <table class="center" style="width:100%">
-        <tr>
-          <th>Opponent</th>
-          <th>Result</th>
-          <th>Match Type</th>
-          <th>Match Time</th>
-        </tr>
-        {% for history in matchHistory %}
+      <table style="width: 100%;">
+        <thead>
           <tr>
-            <td>{{ history[1] }}</td>
-            {% if history[2] == 'W' %}
-              <td><span style="color:blue; font-weight: bold;">W</span></td>
-            {% else %}
-              <td><span style="color:red; font-weight: bold;">L</span></td>
-            {% endif %}
-            <td>{{ history[3] }}</td>
-            <td>{{ history[4] }}</td>
+            <th>Opponent</th>
+            <th>Result</th>
+            <th>Match Type</th>
+            <th>Match Time</th>
           </tr>
-        {% endfor %}
+        </thead>
+        <tbody>
+          {% for i in range(matchHistory|length) %}
+            {% if i > 9 %}
+              <tr class="hidden" style="display: none;">
+                <td>{{ matchHistory[i][1] }}</td>
+                {% if matchHistory[i][2] == 'W' %}
+                  <td><span style="color:blue; font-weight: bold;">W</span></td>
+                {% else %}
+                  <td><span style="color:red; font-weight: bold;">L</span></td>
+                {% endif %}
+                <td>{{ matchHistory[i][3] }}</td>
+                <td>{{ matchHistory[i][4] }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td>{{ matchHistory[i][1] }}</td>
+                {% if matchHistory[i][2] == 'W' %}
+                  <td><span style="color:blue; font-weight: bold;">W</span></td>
+                {% else %}
+                  <td><span style="color:red; font-weight: bold;">L</span></td>
+                {% endif %}
+                <td>{{ matchHistory[i][3] }}</td>
+                <td>{{ matchHistory[i][4] }}</td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
       </table>
+        {% if matchHistory|length > 10 %}
+        <div id="show-history-button">
+          <input type="button" name="username" value="Show all history" style="border: none;" onclick="showHistory();" /><br>
+        </div>
+        {% endif %}
       {% endif %}
       <hr class="border-secondary">
       <div>

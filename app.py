@@ -689,7 +689,7 @@ def profile():
                 if newUsername == "":
                     flash(f"Enter the username please.", "info")
                     return redirect(url_for("profile"))
-                if not validateUsername(username):
+                if not validateUsername(newUsername):
                     flash(f"Username must not contain space!", "info")
                     return redirect(url_for("profile"))
                 session.pop("user", None)

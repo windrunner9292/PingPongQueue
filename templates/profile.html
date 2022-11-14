@@ -154,19 +154,16 @@
         <form action="{{ url_for('profile') }}" method="post">
           <label><strong>Enter new username: </strong>&nbsp;</label>
           <input type="text" name="newUsername" /><br>
-          <input type="submit" name='action' value="Update Username">
+          <input class="btn btn-primary btn-sm leauge-btn mx-4" type="submit" name='action' value="Update Username">
         </form>
       <hr class="border-secondary">
         <form action="{{ url_for('profile') }}" method="post">
           <label><strong>Enter new email: </strong>&nbsp;</label>
           <input type="email" name="newEmail" /><br>
-          <input type="submit" name='action' value="Update Email">
+          <input class="btn btn-primary btn-sm leauge-btn mx-4" type="submit" name='action' value="Update Email">
         </form>
       </div>
     </div>
-
-
-
   </div>
 </div>
 <script>
@@ -174,7 +171,5 @@
   if (userParticipatingLeague == 1) {
     document.querySelector("#rankedGameSection").removeAttribute("hidden");
   }
-
-
 </script>
 {% endblock %}

@@ -6,6 +6,7 @@ import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 import datetime
 from datetime import timedelta
+from sqlalchemy import or_
 
 """ # LOCAL configs
 path = os.path.join(os.path.dirname(__file__), 'confidentialInfo.txt')
@@ -485,7 +486,8 @@ def addHistory(firstUser, secondUser, winner, matchType, matchEndTime):
 
 def getHistory(user):
     records = []
-    for history in History.query.all():
+    conds = [ History.firstUser == user, History.secondUser == user]
+    for history in History.query.filter(or_(*conds)):
         if (history.firstUser == user):
             records.append((history.id, history.secondUser, 'W' if history.winner == user else 'L', history.matchType, history.matchEndTime.strftime("%Y-%m-%d %H:%M")))
         if (history.secondUser == user):
@@ -495,9 +497,9 @@ def getHistory(user):
 
 def getHistoryForReconcile(user):
     records = []
-    for history in History.query.all():
-        if (history.firstUser == user or history.secondUser == user):
-            records.append((history.id, history.firstUser, history.secondUser,history.winner))
+    conds = [ History.firstUser == user, History.secondUser == user]
+    for history in History.query.filter(or_(*conds)):
+        records.append((history.id, history.firstUser, history.secondUser,history.winner))
     return records
 
 '''Below are the Functions that interact with frontEnd directly'''

@@ -52,7 +52,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 PLAYTIME = 25  #in min
 EXPIRE_TIME = 5 #in min
-TIME_OFFSET = timedelta(hours=5)  # Heroku uses UCT.
+TIME_OFFSET = timedelta(hours=6)  # Heroku uses UCT.
 
 class Users(db.Model):
     # Users table definition

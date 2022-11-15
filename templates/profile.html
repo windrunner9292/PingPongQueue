@@ -106,6 +106,9 @@
         <hr class="border-secondary">
       </section>
       {% if matchHistory|length != 0  %}
+      <div class="form-outline" id="search-div" style="display: none;">
+        <input type="text" class="form-control" id="search-input" onkeyup="historyFilter()" placeholder="Search for names...">
+      </div>
       <table style="width: 100%;">
         <thead>
           <tr>
@@ -145,24 +148,26 @@
       </table>
         {% if matchHistory|length > 10 %}
         <div id="show-history-button">
-          <input type="button" name="username" value="Show all history" style="border: none;" onclick="showHistory();" /><br>
+          <input type="button" name="username" value="Show all history" style="margin-top: 5px;" onclick="showHistory();" /><br>
         </div>
         {% endif %}
       {% endif %}
       <hr class="border-secondary">
-      <div>
-        <form action="{{ url_for('profile') }}" method="post">
+      <form class="form-inline" action="{{ url_for('profile') }}" method="post">
+        <div class="form-group center">
           <label><strong>Enter new username: </strong>&nbsp;</label>
-          <input type="text" name="newUsername" /><br>
+          <input type="text" name="newUsername" placeholder="Enter username"/><br>
           <input class="btn btn-primary btn-sm leauge-btn mx-4" type="submit" name='action' value="Update Username">
-        </form>
+        </div>
+      </form>
       <hr class="border-secondary">
-        <form action="{{ url_for('profile') }}" method="post">
+      <form class="form-inline" action="{{ url_for('profile') }}" method="post">
+        <div class="form-group center">
           <label><strong>Enter new email: </strong>&nbsp;</label>
-          <input type="email" name="newEmail" /><br>
+          <input type="email" name="newEmail" placeholder="Enter email"/><br>
           <input class="btn btn-primary btn-sm leauge-btn mx-4" type="submit" name='action' value="Update Email">
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>

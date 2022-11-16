@@ -49,7 +49,8 @@
             els[i].style.display = "table-row"
           }
           document.getElementById("show-history-button").style.display="none";
-          document.getElementById("search-div").style.display="";
+          document.getElementById("search-input").disabled=false;
+          document.getElementById("search-input").placeholder="Search for names...";
         }
 
         function historyFilter() {

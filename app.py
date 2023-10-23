@@ -603,6 +603,7 @@ def adminLogin():
             session["user"] = username
             session["email"] = None
             session["temporary"] = False
+            session["office"] = "Springfield"
             flash("Login Successful!")
             return redirect(url_for("main"))
 

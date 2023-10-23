@@ -518,8 +518,8 @@ def login():
     # workflow when 'Log In' is clicked.
 
     if request.method == "POST":
-        username = request.form["username"].lower()
-        email = request.form["email"].lower()
+        username = request.form["username"]
+        email = request.form["email"]
         if (not isExistingUser(username, email)):                   # when the user doesn't exist
             flash("The username/email pair is not found.")
             return render_template("index.html") 

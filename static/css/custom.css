@@ -268,7 +268,7 @@ li.game{
     font-weight: bold;
   }
 
-  li.game-hide{ border-bottom:1px solid #e9ecef; }
+  li.game-hide{ border-bottom:1px solid #FEFEDF; }
 
 #players-list-container {
     text-align: center;

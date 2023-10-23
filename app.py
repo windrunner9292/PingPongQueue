@@ -81,6 +81,7 @@ class Queue(db.Model):
     isRankedMatch = db.Column(db.Integer)
     isTournamentMatch = db.Column(db.Integer)
     QueueEndTime = db.Column(db.DateTime)
+    office = db.Column(db.String(20))
 
     def __repr__(self):
         return f"User('{self.username}, {self.email}')"
@@ -121,6 +122,7 @@ class History(db.Model):
     winner = db.Column(db.String(20), nullable=False)
     matchType = db.Column(db.String(20), nullable=False)
     matchEndTime = db.Column(db.DateTime)
+    office = db.Column(db.String(20))
 
     def __repr__(self):
         return f"User('{self.firstUser}, {self.secondUser}, {self.winner}, {self.matchType}, {self.matchEndTime}')"
@@ -147,9 +149,9 @@ def getAllUsers():
     # returns the current users in the table
     return sorted([user.username for user in Users.query.all()])
 
-def getCurrentQueue():
-    # returns the current users in the table
-    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime, queue.isTournamentMatch) for queue in Queue.query.all()]
+def getCurrentQueue(office):
+    # returns the current users in the table for specific office
+    currentQueue = [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime, queue.isTournamentMatch) for queue in Queue.query.all() if queue.office == office]
     currentQueue.sort(key=lambda x:x[2])
     return currentQueue
 
@@ -304,13 +306,14 @@ def resultCorrection(firstUser, secondUser, isRanked, firstUserStreak=1, secondU
         actualLostPlayer.streak_normal = secondUserStreak
     db.session.commit()
 
-def addQueue(firstUser, secondUser, isRankedMatch, isTournamentMatch, QueueEndTime):
+def addQueue(firstUser, secondUser, isRankedMatch, isTournamentMatch, QueueEndTime, office):
     # adds the row to Queue db
     queue = Queue(firstUser=firstUser,
                   secondUser=secondUser,
                   isRankedMatch=isRankedMatch,
                   isTournamentMatch=isTournamentMatch,
-                  QueueEndTime=QueueEndTime)
+                  QueueEndTime=QueueEndTime,
+                  office=office)
     db.session.add(queue)
     db.session.commit()
 
@@ -327,9 +330,8 @@ def sendConfirmationEmail(username, email):
     msg.body = 'Link for {} is {}'.format(username, link) + "\n If you clicked on 'start over' button, please disregard this email. "
     mail.send(msg)
 
-def sendNotificationEmail(iteration):
+def sendNotificationEmail(iteration, currentQueue):
     # used for the notification email.
-    currentQueue = getCurrentQueue()
     recipients = [Users.query.filter_by(username=currentQueue[iteration][0]).first().email,
                   Users.query.filter_by(username=currentQueue[iteration][1]).first().email]
     msg = Message('You are up next!', sender=app.config['MAIL_USERNAME'], recipients=recipients)
@@ -357,32 +359,30 @@ def updatechallengeRestrictionEnabled(flag):
     Admin.query.filter_by(username='admin').first().challengeRestrictionEnabled = flag
     db.session.commit()
 
-def getCurrentTimeQueueEndTimeDiffInSeconds():
-    if len(getCurrentQueue()) == 0:
+def getCurrentTimeQueueEndTimeDiffInSeconds(currentQueue):
+    if len(currentQueue) == 0:
         return 86000
-    return (getCurrentQueue()[0][4] - datetime.datetime.now()).seconds
+    return (currentQueue[0][4] - datetime.datetime.now()).seconds
 
-def resetCurrentTimeQueueEndTimeDiffInSeconds():
-    if len(getCurrentQueue()) == 0:
+def resetCurrentTimeQueueEndTimeDiffInSeconds(currentQueue):
+    if len(currentQueue) == 0:
         return
-    firstQueue = getCurrentQueue()[0]
+    firstQueue = currentQueue[0]
     Queue.query.filter_by(id=firstQueue[2], firstUser=firstQueue[0], secondUser=firstQueue[1]).first().QueueEndTime = datetime.datetime.now()+timedelta(minutes=PLAYTIME)
     db.session.commit()
 
-def isMatchOver():
+def isMatchOver(currentQueue):
     # indicates if allocated 25min is exhausted.
-    if len(getCurrentQueue()) == 0 or (getCurrentQueue()[0][4] - datetime.datetime.now()).days == -1:
+    if len(currentQueue) == 0 or (currentQueue[0][4] - datetime.datetime.now()).days == -1:
         return True
     return False
 
-def isMatchExpired():
+def isMatchExpired(currentQueue):
     # indicates if 5min is elapsed after the match is over.
-    if len(getCurrentQueue()) == 0:
+    if len(currentQueue) == 0:
         return False
-    expirationTime = getCurrentQueue()[0][4] + timedelta(minutes=EXPIRE_TIME)
-    expirationHour, expirationMin = expirationTime.hour, expirationTime.minute
-    currentHour, currentMin = datetime.datetime.now().hour, datetime.datetime.now().minute
-    return True if expirationHour == currentHour and expirationMin == currentMin else False
+    expirationTime = currentQueue[0][4] + timedelta(minutes=EXPIRE_TIME)
+    return True if datetime.datetime.now() > expirationTime else False
 
 def update_winner_eight_nine(username):
     Admin.query.filter_by(username='admin').first().winner_eight_nine = username
@@ -475,12 +475,13 @@ def validateUsername(username):
         return False
     return True
 
-def addHistory(firstUser, secondUser, winner, matchType, matchEndTime):
+def addHistory(firstUser, secondUser, winner, matchType, matchEndTime, office):
     matchRecord = History(firstUser=firstUser,
                           secondUser=secondUser,
                           winner=winner,
                           matchType=matchType,
-                          matchEndTime=matchEndTime)
+                          matchEndTime=matchEndTime,
+                          office=office)
     db.session.add(matchRecord)
     db.session.commit()
 
@@ -517,8 +518,8 @@ def login():
     # workflow when 'Log In' is clicked.
 
     if request.method == "POST":
-        username = request.form["username"]
-        email = request.form["email"]
+        username = request.form["username"].lower()
+        email = request.form["email"].lower()
         if (not isExistingUser(username, email)):                   # when the user doesn't exist
             flash("The username/email pair is not found.")
             return render_template("index.html") 
@@ -527,6 +528,7 @@ def login():
             session["user"] = username
             session["email"] = email
             session["temporary"] = False
+            session["office"] = "Springfield"                       # default office is Springfield
             flash("Login Successful!")
             return redirect(url_for("main"))
 
@@ -696,7 +698,7 @@ def profile():
                     return redirect(url_for("profile"))
                 session.pop("user", None)
                 session["user"] = newUsername
-                for queue in getCurrentQueue():
+                for queue in [(queue.firstUser, queue.secondUser, queue.id, queue.isRankedMatch, queue.QueueEndTime, queue.isTournamentMatch) for queue in Queue.query.all()]:
                     if queue[0] == username:
                         Queue.query.filter_by(id=queue[2]).first().firstUser = newUsername
                     elif queue[1] == username:
@@ -729,8 +731,6 @@ def profile():
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
-
-
 
 @app.route("/admin", methods = ['GET','POST'])
 def admin():
@@ -926,24 +926,24 @@ def redirectMainGetRequest():
     if "user" in session:
         user = session["user"]
         currentUsers = getAllUsers()
-        currentQueue = getCurrentQueue()
+        currentQueue = getCurrentQueue(session["office"])
         currentRankUsers = getCurrentLeaderBoard()
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
-        remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
-        matchOver = isMatchOver()
-        matchExpired = isMatchExpired()
+        remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds(currentQueue)
+        matchOver = isMatchOver(currentQueue)
+        matchExpired = isMatchExpired(currentQueue)
         if matchExpired and currentQueue[0][5] != 1:
             firstCurrentPlayer = currentQueue[0][0]
             secondCurrentPlayer = currentQueue[0][1]
             queueID = currentQueue[0][2]
             #addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
             deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
-            currentQueue = getCurrentQueue()
-            resetCurrentTimeQueueEndTimeDiffInSeconds()
+            currentQueue = getCurrentQueue(session["office"])
+            resetCurrentTimeQueueEndTimeDiffInSeconds(currentQueue)
             if len(currentQueue) != 0:
                 flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
-                sendNotificationEmail(0)
+                sendNotificationEmail(0,currentQueue)
             return redirect(url_for("main",
                             currentUsers=currentUsers,
                             currentQueue=currentQueue,
@@ -952,7 +952,8 @@ def redirectMainGetRequest():
                             isRankedEnabled=isRankedEnabled,
                             remainingTime=remainingTime,
                             matchExpired=matchExpired,
-                            matchOver=matchOver))
+                            matchOver=matchOver,
+                            CURRENT_OFFICE=session["office"]))
         return render_template("main.html", 
                     currentUsers=currentUsers,
                     currentQueue=currentQueue,
@@ -961,7 +962,8 @@ def redirectMainGetRequest():
                     isRankedEnabled=isRankedEnabled,
                     remainingTime=remainingTime,
                     matchExpired=matchExpired,
-                    matchOver=matchOver)
+                    matchOver=matchOver,
+                    CURRENT_OFFICE=session["office"])
     else:
         flash("You are not logged in!")
         return redirect(url_for("home"))
@@ -975,21 +977,21 @@ def main():
         currentRankUsers = getCurrentLeaderBoard()
         isRankedEnabled = getIsRankedEnabled()
         leaderBoardHeader = getCurrentLeaderBoardHeader()
-        currentQueue = getCurrentQueue()
-        remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds()
-        matchOver = isMatchOver()
-        matchExpired = isMatchExpired()
+        currentQueue = getCurrentQueue(session["office"])  #default landing page is Springfield
+        remainingTime = getCurrentTimeQueueEndTimeDiffInSeconds(currentQueue)
+        matchOver = isMatchOver(currentQueue)
+        matchExpired = isMatchExpired(currentQueue)
         if matchExpired and currentQueue[0][5] != 1:
             firstCurrentPlayer = currentQueue[0][0]
             secondCurrentPlayer = currentQueue[0][1]
             queueID = currentQueue[0][2]
             #addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match expired","Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
             deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
-            currentQueue = getCurrentQueue()
-            resetCurrentTimeQueueEndTimeDiffInSeconds()
+            currentQueue = getCurrentQueue(session["office"])
+            resetCurrentTimeQueueEndTimeDiffInSeconds(currentQueue)
             if len(currentQueue) != 0:
                 flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
-                sendNotificationEmail(0)
+                sendNotificationEmail(0,currentQueue)
             return redirect(url_for("main",
                             currentUsers=currentUsers,
                             currentQueue=currentQueue,
@@ -998,8 +1000,57 @@ def main():
                             isRankedEnabled=isRankedEnabled,
                             remainingTime=remainingTime,
                             matchExpired=matchExpired,
-                            matchOver=matchOver))
+                            matchOver=matchOver,
+                            CURRENT_OFFICE=session["office"]))
         if request.method == "POST":
+            if request.form['action'] == 'Springfield':
+                session["office"] = 'Springfield'
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
+            if request.form['action'] == 'South Carolina':
+                session["office"] = 'South Carolina' 
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
+            if request.form['action'] == 'Puerto Rico':
+                session["office"] = 'Puerto Rico'
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
+            if request.form['action'] == 'Honduras':
+                session["office"] = 'Honduras'
+                return redirect(url_for("main", 
+                                        currentUsers=currentUsers,
+                                        currentQueue=currentQueue,
+                                        currentRankUsers=currentRankUsers,
+                                        leaderBoardHeader=leaderBoardHeader,
+                                        isRankedEnabled=isRankedEnabled,
+                                        remainingTime=remainingTime,
+                                        matchExpired=matchExpired,
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))    
             if request.form['action'] == 'Submit':                                      # button for adding the match to the queue
                 firstPlayer = request.form["firstPlayer"]
                 secondPlayer = request.form["secondPlayer"]
@@ -1007,7 +1058,7 @@ def main():
                 isTournamentGame = "tourneyGame" in request.form
                 if(isRankedMatch and not validateRankedMatch(firstPlayer,secondPlayer)):
                     flash("Invalid ranked match", 'error')
-                    currentQueue = getCurrentQueue()
+                    currentQueue = getCurrentQueue(session["office"])
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1016,10 +1067,11 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
                 if firstPlayer == secondPlayer:                                         # when accidentally adding same players
                     flash("You can't play yourself!", "error")
-                    currentQueue = getCurrentQueue()
+                    currentQueue = getCurrentQueue(session["office"])
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1028,10 +1080,11 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
                 if firstPlayer not in currentUsers or secondPlayer not in currentUsers:                 # when accidentally adding unregistered user
                     flash("Unregistered user.", "error")
-                    currentQueue = getCurrentQueue()
+                    currentQueue = getCurrentQueue(session["office"])
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1040,14 +1093,15 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
                 if (isRankedMatch):
-                    addQueue(firstPlayer, secondPlayer, 1, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
+                    addQueue(firstPlayer, secondPlayer, 1, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME),session["office"])
                 elif (not isRankedMatch and isTournamentGame):
-                    addQueue(firstPlayer, secondPlayer, 0, 1, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
+                    addQueue(firstPlayer, secondPlayer, 0, 1, datetime.datetime.now()+timedelta(minutes=PLAYTIME),session["office"])
                 else:
-                    addQueue(firstPlayer, secondPlayer, 0, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME))
-                currentQueue = getCurrentQueue()
+                    addQueue(firstPlayer, secondPlayer, 0, 0, datetime.datetime.now()+timedelta(minutes=PLAYTIME),session["office"])
+                currentQueue = getCurrentQueue(session["office"])
                 return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1056,7 +1110,8 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
             elif request.form['action'] == 'Game over':                                     # button for and deleting and optionally notifying the first queue.
                 firstCurrentPlayer = request.form["firstCurrentPlayer"]
                 secondCurrentPlayer = request.form["secondCurrentPlayer"]
@@ -1065,16 +1120,16 @@ def main():
                 dontRecordStatsChecked = "dontRecordStats" in request.form
                 firstWins = "firstWins" in request.form
                 secondWins = "secondWins" in request.form
-                currentQueue = getCurrentQueue()
+                currentQueue = getCurrentQueue(session["office"])
                 currentQueueSize = len(currentQueue)
                 if dontRecordStatsChecked:
                     #addHistory(firstCurrentPlayer,secondCurrentPlayer,"Match not recorded","League" if currentQueue[0][5] == 1 else "Ranked" if currentQueue[0][3] == 1 else "Normal", currentQueue[0][4]-TIME_OFFSET)
                     deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
-                    currentQueue = getCurrentQueue()
-                    resetCurrentTimeQueueEndTimeDiffInSeconds()
+                    currentQueue = getCurrentQueue(session["office"])
+                    resetCurrentTimeQueueEndTimeDiffInSeconds(currentQueue)
                     if(not dontSendEmailChecked and currentQueueSize != 1):
                         flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
-                        sendNotificationEmail(0)
+                        sendNotificationEmail(0,currentQueue)
                     return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1083,7 +1138,8 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
                 #if (currentQueue[0][3]==1):                                                 # if the match is ranked:
                 if (not firstWins and not secondWins):
                     flash("Winner must be chosen!",'error')
@@ -1095,7 +1151,8 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
                 elif (firstWins and secondWins):
                     flash("There can only be one winner!",'error')
                     return redirect(url_for("main",
@@ -1106,33 +1163,34 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
                 else:
                     if (currentQueue[0][3]==1):
                         swapRankings(firstCurrentPlayer,secondCurrentPlayer,firstWins,secondWins)
                         if firstWins:
-                            addHistory(firstCurrentPlayer,secondCurrentPlayer,firstCurrentPlayer,"Ranked",currentQueue[0][4]-TIME_OFFSET)
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,firstCurrentPlayer,"Ranked",currentQueue[0][4]-TIME_OFFSET,session["office"])
                             recordRankedStatistics(firstCurrentPlayer, 1)
                             recordRankedStatistics(secondCurrentPlayer, 0)
                         else:
-                            addHistory(firstCurrentPlayer,secondCurrentPlayer,secondCurrentPlayer,"Ranked",currentQueue[0][4]-TIME_OFFSET)
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,secondCurrentPlayer,"Ranked",currentQueue[0][4]-TIME_OFFSET,session["office"])
                             recordRankedStatistics(firstCurrentPlayer, 0)
                             recordRankedStatistics(secondCurrentPlayer, 1)
                     else:
                         if firstWins:
-                            addHistory(firstCurrentPlayer,secondCurrentPlayer,firstCurrentPlayer,"League" if currentQueue[0][5] == 1 else "Normal",currentQueue[0][4]-TIME_OFFSET)
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,firstCurrentPlayer,"League" if currentQueue[0][5] == 1 else "Normal",currentQueue[0][4]-TIME_OFFSET,session["office"])
                             recordNormalStatistics(firstCurrentPlayer, 1)
                             recordNormalStatistics(secondCurrentPlayer, 0)
                         else:
-                            addHistory(firstCurrentPlayer,secondCurrentPlayer,secondCurrentPlayer,"League" if currentQueue[0][5] == 1 else "Normal",currentQueue[0][4]-TIME_OFFSET)
+                            addHistory(firstCurrentPlayer,secondCurrentPlayer,secondCurrentPlayer,"League" if currentQueue[0][5] == 1 else "Normal",currentQueue[0][4]-TIME_OFFSET,session["office"])
                             recordNormalStatistics(firstCurrentPlayer, 0)
                             recordNormalStatistics(secondCurrentPlayer, 1)
                 deleteQueue(firstCurrentPlayer,secondCurrentPlayer,queueID)
-                currentQueue = getCurrentQueue()
-                resetCurrentTimeQueueEndTimeDiffInSeconds()
+                currentQueue = getCurrentQueue(session["office"])
+                resetCurrentTimeQueueEndTimeDiffInSeconds(currentQueue)
                 if(not dontSendEmailChecked and currentQueueSize != 1):
                     flash("Email has been sent to {} and {}.".format(currentQueue[0][0],currentQueue[0][1]))
-                    sendNotificationEmail(0)
+                    sendNotificationEmail(0,currentQueue)
                 return redirect(url_for("main",
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1141,13 +1199,14 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))
             elif request.form['action'] == 'Delete':                                          # button for deleting the n'th queue.
                 firstPlayerInQueue = request.form["firstPlayerInQueue"]
                 secondPlayerInQueue = request.form["secondPlayerInQueue"]
                 queueID = request.form["queueID"]
                 deleteQueue(firstPlayerInQueue,secondPlayerInQueue,queueID)
-                currentQueue = getCurrentQueue()
+                currentQueue = getCurrentQueue(session["office"])
                 return redirect(url_for("main", 
                                         currentUsers=currentUsers,
                                         currentQueue=currentQueue,
@@ -1156,7 +1215,8 @@ def main():
                                         isRankedEnabled=isRankedEnabled,
                                         remainingTime=remainingTime,
                                         matchExpired=matchExpired,
-                                        matchOver=matchOver))       
+                                        matchOver=matchOver,
+                                        CURRENT_OFFICE=session["office"]))       
         if request.method == "GET":
             return redirect(url_for("redirectMainGetRequest"))
     else:
@@ -1173,6 +1233,7 @@ def logout():
     session.pop("user", None)
     session.pop("email", None)
     session.pop("temporary", None)
+    session.pop("office",None)
     return redirect(url_for("home"))
 
 if __name__ == "__main__":
@@ -1181,4 +1242,3 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 7000))  #PROD
     app.run(debug=True, port = port)          #PROD
     #app.run(debug=True, port = 8000)         #LOCAL
-    #print("test")

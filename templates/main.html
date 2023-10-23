@@ -16,6 +16,33 @@
 <br/>
 
 <br/>
+<form class="center" action="{{ url_for('main') }}" method="post" >
+  {% if CURRENT_OFFICE == 'Springfield' %}
+    <input type="submit" value="Springfield" name="action" style="font-weight: bold"/>
+  {% else %}
+    <input type="submit" value="Springfield" name="action"/>
+  {% endif %}
+
+  {% if CURRENT_OFFICE == 'South Carolina' %}
+    <input type="submit" value="South Carolina" name="action" style="font-weight: bold"/>
+  {% else %}
+    <input type="submit" value="South Carolina" name="action"/>
+  {% endif %}
+
+  {% if CURRENT_OFFICE == 'Puerto Rico' %}
+    <input type="submit" value="Puerto Rico" name="action" style="font-weight: bold"/>
+  {% else %}
+    <input type="submit" value="Puerto Rico" name="action"/>
+  {% endif %}
+
+  {% if CURRENT_OFFICE == 'Honduras' %}
+    <input type="submit" value="Honduras" name="action" style="font-weight: bold"/>
+  {% else %}
+    <input type="submit" value="Honduras" name="action"/>
+  {% endif %}
+</form>
+
+<br/>
 
 <p hidden><span id="remainingTimeValue">{{ remainingTime }}</span></p>
 {% if currentQueue|length == 0 or currentQueue[0][5] == 1 %}
@@ -113,57 +140,61 @@
           {% endfor %}
         </datalist>
       </div>
-      <input type="submit" name="action" value="Submit"/>
-      <div class="inline-display">
+        <input type="submit" name="action" value="Submit"/>
         <div class="inline-display">
-          {% if isRankedEnabled == 1 %}
-            <input type="checkbox"name="rankedMatch">
-            <label>Ranked Match</label><br>
-          {% else %}
-            <input type="checkbox" id="eMail" name="tourneyGame">
-            <label>Tournament Game</label><br>
-          {% endif %}
+          <div class="inline-display">
+            {% if CURRENT_OFFICE == 'Springfield' %}
+              {% if isRankedEnabled == 1 %}
+                <input type="checkbox"name="rankedMatch">
+                <label>Ranked Match</label><br>
+              {% else %}
+                <input type="checkbox" id="eMail" name="tourneyGame">
+                <label>Tournament Game</label><br>
+              {% endif %}
+            {% endif %}
+          </div>
         </div>
-      </div>
-      
     </form>
   </div>
 
   <br/>
-  <p class="sub-headers">{{ leaderBoardHeader }}</p>
-  <div id="players-container">
-    <table class="center" style="width:20%">
-      <tr>
-        <th>Rank</th>
-        <th>Player</th>
-      </tr>
-    {% for i in range(0,currentRankUsers|length) %}
-      {% if currentRankUsers[i][0] == session["user"] %}
-      <tr>
-        <td>{{ i+1 }}</td>
-        {% if currentRankUsers[i][2][0] == 1 and currentRankUsers[i][2][1] > 2  %}
-          <td><span style="color:blue; font-weight: bold; font-style:italic; white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/fire.png"></img></span></td>
-        {% elif currentRankUsers[i][2][0] == 0 and currentRankUsers[i][2][1] > 2  %}
-          <td><span style="color:blue; font-weight: bold; font-style:italic; white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/poop.png"></img></span></td>
-        {% else %}
-          <td><span style="color:blue; font-weight: bold; font-style:italic">{{ currentRankUsers[i][0] }}</span></td>
-        {% endif %}
-      </tr>
-      {% else %}
-      <tr>
-        <td>{{ i+1 }}</td>
-        {% if currentRankUsers[i][2][0] == 1 and currentRankUsers[i][2][1] > 2  %}
-          <td><span style="white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/fire.png"></img></span></td>
-        {% elif currentRankUsers[i][2][0] == 0 and currentRankUsers[i][2][1] > 2  %}
-          <td><span style="white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/poop.png"></img></span></td>
-        {% else %}
-          <td>{{ currentRankUsers[i][0] }}</span></td>
-        {% endif %}
-      </tr>
-      {% endif %}
-    {% endfor %}
-    </table>
-    
+    {% if CURRENT_OFFICE == 'Springfield' %}
+      <p class="sub-headers">{{ leaderBoardHeader }}</p>
+      <div id="players-container">
+        <table class="center" style="width:20%">
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+          </tr>
+        {% for i in range(0,currentRankUsers|length) %}
+          {% if currentRankUsers[i][0] == session["user"] %}
+          <tr>
+            <td>{{ i+1 }}</td>
+            {% if currentRankUsers[i][2][0] == 1 and currentRankUsers[i][2][1] > 2  %}
+              <td><span style="color:blue; font-weight: bold; font-style:italic; white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/fire.png"></img></span></td>
+            {% elif currentRankUsers[i][2][0] == 0 and currentRankUsers[i][2][1] > 2  %}
+              <td><span style="color:blue; font-weight: bold; font-style:italic; white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/poop.png"></img></span></td>
+            {% else %}
+              <td><span style="color:blue; font-weight: bold; font-style:italic">{{ currentRankUsers[i][0] }}</span></td>
+            {% endif %}
+          </tr>
+          {% else %}
+          <tr>
+            <td>{{ i+1 }}</td>
+            {% if currentRankUsers[i][2][0] == 1 and currentRankUsers[i][2][1] > 2  %}
+              <td><span style="white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/fire.png"></img></span></td>
+            {% elif currentRankUsers[i][2][0] == 0 and currentRankUsers[i][2][1] > 2  %}
+              <td><span style="white-space: nowrap;">{{ currentRankUsers[i][0] }} <img class="emoji" src="../static/img/poop.png"></img></span></td>
+            {% else %}
+              <td>{{ currentRankUsers[i][0] }}</span></td>
+            {% endif %}
+          </tr>
+          {% endif %}
+        {% endfor %}
+        </table>
+      </div>
+    {% endif %}
   </div>
+</div>
 
 {% endblock %}

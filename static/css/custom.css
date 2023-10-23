@@ -1,6 +1,6 @@
 /* Manik bg color for body */
 body {
-    background-color: #e9ecef;
+    background-color: #FEFEDF;
 }
 
 .sub-headers {
@@ -16,7 +16,7 @@ body {
 
 #players-container {
     text-align: center;
-    border: 3px solid #001080;
+    border: 3px solid #6441A1;
     border-radius: 25px;
     padding: 10px 10px 10px;
 }
@@ -141,7 +141,7 @@ img.emoji {
     /* comes into effect for screens between 321 and 480 pixels (inclusive) */
     #players-container {
         text-align: center;
-        border: 3px solid #001080;
+        border: 3px solid #6441A1;
         border-radius: 25px;
         padding: 10px 10px 10px;
         margin: auto;
@@ -272,7 +272,7 @@ li.game{
 
 #players-list-container {
     text-align: center;
-    border: 3px solid #001080;
+    border: 3px solid #6441A1;
     border-radius: 25px;
     margin: auto;
     width: 150px;

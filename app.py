@@ -472,8 +472,17 @@ def getBracket():
 
 def validateUsername(username):
     if ' ' in username:
-        return False
-    return True
+        return False, "Username must not contain space."
+    if Users.query.filter_by(username=username).first():
+        return False, "Username already exists."
+    return True, ""
+
+def validateEmail(email):
+    if Users.query.filter_by(email=email).first():
+        return False, "Email already exists."
+    if 'nlsnow.com' not in email.lower():
+        return False, "Email must be from NLS."
+    return True, ""
 
 def addHistory(firstUser, secondUser, winner, matchType, matchEndTime, office):
     matchRecord = History(firstUser=firstUser,
@@ -622,8 +631,13 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         email = request.form["email"]
-        if not validateUsername(username):
-            flash(f"Username must not contain space!", "info")
+        isUsernameValid = validateUsername(username)
+        isEmailValid = validateEmail(email)
+        if not isUsernameValid[0]:
+            flash(isUsernameValid[1], "info")
+            return render_template("signup.html")
+        elif not isEmailValid[0]:
+            flash(isEmailValid[1], "info")
             return render_template("signup.html")
 
         if (not isExistingUser(username, email)):                           # if there is no existing user, send a confirmation email.
@@ -631,9 +645,6 @@ def signup():
             #session["email"] = email
             #session["temporary"] = True
             #sendConfirmationEmail(username, email)
-            if 'nlsnow.com' not in email.lower():
-                flash(f"Email must be from NLS!", "info")
-                return render_template("signup.html")
             addUser(username, email)
             #flash(f"Confirmation email has been sent to {email}!", "info")
             flash(f"Account is created for {username}!", "info")

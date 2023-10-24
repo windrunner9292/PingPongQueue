@@ -8,10 +8,10 @@ How to use:
 1. Each user will create an account using the username and email. Preferably NLS email.
 2. In the Dashboard, the user can monitor the queue status and rankings (for SGF only) for different offices and put him/herself into the queue against different users.
 3. On the Profile page, the user can see the game history and winrate, update the username and email, and join/leave the league.
-4. on the Hall of Fame page, the past tournament winners are listed.
+4. On the Hall of Fame page, the past tournament winners are listed.
 5. Admin can log in from the login page using the special credential and can do the following:
    - Turn on/off the ranked game mode
-   - Add new use</li>
+   - Add new user
    - Delete the existing user
    - Swap the ranks of two selected ranked players
    - Update the leaderboard header
